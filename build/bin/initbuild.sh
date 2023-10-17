@@ -68,6 +68,8 @@ else
       SEMVER_RELEASE_LEVEL="minor"
     elif [ "$PATCH_COUNT" -gt "0" ]; then
       SEMVER_RELEASE_LEVEL="patch"
+    else
+      SEMVER_RELEASE_LEVEL="build"
     fi
   fi
 
@@ -81,9 +83,12 @@ else
   elif [[ "${SEMVER_RELEASE_LEVEL}" =~ ^(major|minor|patch)$ ]]; then
     semver bump ${SEMVER_RELEASE_LEVEL} ${SEMVER_LAST_TAG} > $VERSION_FILE
     echo "Configuring semver for ${SEMVER_RELEASE_LEVEL} bump from ${SEMVER_LAST_TAG} to $(cat $VERSION_FILE)"
-  else
-    semver bump build build.$GITHUB_RUN_ID > $VERSION_FILE
+  elif [ "${SEMVER_RELEASE_LEVEL}" == "initial" ]; then
+    semver bump build build.${GITHUB_RUN_ID} ${SEMVER_LAST_TAG} > $VERSION_FILE
     echo "Configuring semver for rebuild of ${SEMVER_LAST_TAG}: $(cat $VERSION_FILE)"
+  else
+    echo "Unable to initialize semantic versioning"
+    exit 1
   fi
 fi
 
