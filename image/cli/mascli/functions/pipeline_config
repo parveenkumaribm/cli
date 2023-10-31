@@ -54,8 +54,12 @@ function pipeline_config_sso_properties() {
     export DEFAULT_IDP="${defaultIDP}"
     echo "Default IDP set to: $DEFAULT_IDP"
 
-    prompt_for_input "Enable seamless login? (true/false)" seamlessLogin "false"
-    export SEAMLESS_LOGIN="${seamlessLogin}"
+    prompt_for_confirm "Enable seamless login? (true/false)" seamlessLogin
+    if [[ "$seamlessLogin" == "true" ]]; then
+    export SEAMLESS_LOGIN=true
+    else
+    export SEAMLESS_LOGIN=false
+    fi
     echo "Seamless Login set to: $SEAMLESS_LOGIN"
   fi
 }
