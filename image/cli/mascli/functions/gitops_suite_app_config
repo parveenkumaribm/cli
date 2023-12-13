@@ -311,6 +311,112 @@ function wait_till_cr_ready(){
   
 }
 
+function invoke_suite_manage_bim_config() {
+  export MAS_APP_SETTINGS_BIM_MOUNT_PATH=/tmp/bim
+  export MAS_APP_SETTINGS_BIM_MOUNT_PATH=${MAS_APP_SETTINGS_BIM_MOUNT_PATH:-"/bim"}
+  export DB2_INSTANCE_NAME=db2wh-${MAS_INSTANCE_ID}-${MAS_APP_ID}
+  export DB2_NAMESPACE=db2u
+  export DB2_DBNAME=${DB2_DBNAME:-"BLUDB"}
+
+  export ROLE_NAME=suite_manage_bim_config && ansible-playbook ibm.mas_devops.run_role
+  rc=$?
+  [ $rc -ne 0 ] && exit $rc
+
+}
+
+function invoke_suite_manage_birt_report_config() {
+  #export MAS_WORKSPACE_ID=${MAS_WORKSPACE_ID}
+  export MANAGE_WORKSPACE_CR_NAME="${MAS_INSTANCE_ID}-${MAS_WORKSPACE_ID}"
+  #export MAS_INSTANCE_ID=${MAS_INSTANCE_ID}
+  export MANAGE_CONFIG_DIR=${TEMP_MANAGE_CONFIG_DIR}/birt
+  export GITOPS=true
+  export MANAGE_REPORT_BUNDLE_SERVER_NAME=${MANAGE_REPORT_BUNDLE_SERVER_NAME:-"rpt"}
+
+  export ROLE_NAME=suite_manage_birt_report_config && ansible-playbook ibm.mas_devops.run_role
+  rc=$?
+  [ $rc -ne 0 ] && exit $rc
+
+  export BIRT_SERVER_BUNDLES_FILE="${MANAGE_CONFIG_DIR}/mas-${MAS_INSTANCE_ID}-birt-server-bundles.yml"
+  #TODO check if similar file content exist, proceed further if file content is new
+  # ansible role has logic to enforce idempotent, create those necessary k8s resource via gitops
+  
+  cat ${BIRT_SERVER_BUNDLES_FILE} | yq -r '.' > ${MANAGE_CONFIG_DIR}/mas-${MAS_INSTANCE_ID}-birt-server-bundles.json
+  jq '.mas_appws_spec.settings.deployment.serverBundles += input' ${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec.json ${MANAGE_CONFIG_DIR}/mas-${MAS_INSTANCE_ID}-birt-server-bundles.json > "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec_new.json"
+  cat "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec_new.json" >  "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec.json"
+
+}
+
+
+# Update Manage database with COS information
+function manage_attachments_configure_database() {
+  echo
+  echo_h2 "invoke_suite_manage_attachments_db2_script Creating cos.sh file"
+  jinja -X .+ $CLI_DIR/templates/gitops/files/manage/attachments_config/cos.sh.j2 -o ${MANAGE_CONFIG_DIR}/cos.sh
+  rc=$?
+  [ $rc -ne 0 ] && exit $rc
+
+  chmod +x ${MANAGE_CONFIG_DIR}/cos.sh
+
+  echo
+  echo_h2 "Copying cos.sh file to ${DB2_NAMESPACE}/c-${DB2_INSTANCE_NAME}-db2u-0"
+  oc cp ${MANAGE_CONFIG_DIR}/cos.sh ${DB2_NAMESPACE}/c-${DB2_INSTANCE_NAME}-db2u-0:/tmp/cos.sh -c db2u
+  rc=$?
+  [ $rc -ne 0 ] && exit $rc
+
+  echo
+  echo_h2 "Executing cos.sh file on ${DB2_NAMESPACE}/c-${DB2_INSTANCE_NAME}-db2u-0"
+  oc exec -n ${DB2_NAMESPACE} c-${DB2_INSTANCE_NAME}-db2u-0 -- su -lc '/tmp/cos.sh | tee /tmp/cos.log' db2inst1
+  rc=$?
+  [ $rc -ne 0 ] && exit $rc
+}
+
+function invoke_suite_manage_attachments_config() {
+
+  export MAS_MANAGE_ATTACHMENTS_PROVIDER="aws"
+  export DB2_INSTANCE_NAME=db2wh-${MAS_INSTANCE_ID}-${MAS_APP_ID}
+  export DB2_NAMESPACE=db2u
+  export DB2_DBNAME=${DB2_DBNAME:-"BLUDB"}
+  export MANAGE_CONFIG_DIR=${TEMP_MANAGE_CONFIG_DIR}/attachments
+  export ROLE_NAME=suite_manage_attachments_config && ansible-playbook ibm.mas_devops.run_role
+  rc=$?
+  [ $rc -ne 0 ] && exit $rc
+
+  export MANAGE_ATTACHMENTS_CONFIG_CERTS_FILE="${MANAGE_CONFIG_DIR}/${MAS_INSTANCE_ID}.${MAS_WORKSPACE_ID}.${MAS_APP_ID}-imported-certs.yml"
+  cat ${MANAGE_ATTACHMENTS_CONFIG_CERTS_FILE} | yq -r '.' > ${MANAGE_CONFIG_DIR}/imported-certs.json
+  jq '.mas_appws_spec.settings.deployment.importedCerts += input' ${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec.json ${MANAGE_CONFIG_DIR}/imported-certs.json  > "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec_new.json"
+  rc=$?
+  [ $rc -ne 0 ] && exit $rc
+
+  cat "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec_new.json" >  "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec.json"
+  
+  # TODO Execute DB2 script in db2 pod after second reconcillation
+  export MANAGE_ATTACHMENTS_CONFIGURE_DATABASE=true
+
+  #TODO restart restart-manage-server.yml
+  
+  # Create a flag in secret manager
+
+  #TODO check if similar file content exist, proceed further if file content is new
+  # ansible role has logic to enforce idempotent, create those necessary k8s resource via gitops
+
+
+}
+
+function invoke_suite_manage_logging_config() {
+  export COS_TYPE="aws"
+  export MANAGE_CONFIG_DIR=${TEMP_MANAGE_CONFIG_DIR}/logging
+  export ROLE_NAME=suite_manage_logging_config && ansible-playbook ibm.mas_devops.run_role
+  rc=$?
+  [ $rc -ne 0 ] && exit $rc    
+  export LOGGING_S3_DESTINATION_FILE="${MANAGE_CONFIG_DIR}/${MAS_INSTANCE_ID}.${MAS_WORKSPACE_ID}.${MAS_APP_ID}-s3-destination.yml"
+  cat ${LOGGING_S3_DESTINATION_FILE} | yq -r '.' > ${MANAGE_CONFIG_DIR}/s3-destination.json
+  jq '.mas_appws_spec.settings.deployment.loggingS3Destination += input' ${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec.json ${MANAGE_CONFIG_DIR}/s3-destination.json > "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec_new.json"
+  cat "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec_new.json" >  "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec.json"
+}
+
+
+
+
 function gitops_suite_app_config() {
   # Take the first parameter off (it will be create-gitops)
   shift
@@ -588,6 +694,37 @@ function gitops_suite_app_config() {
 
     check_argo_app_synced mas-${MAS_INSTANCE_ID}-${MAS_APP_ID}-app-config-${MAS_WORKSPACE_ID} ${CLUSTER_ID}-watcher mas-${MAS_INSTANCE_ID}-${MAS_APP_ID}
     check_argo_app_healthy mas-${MAS_INSTANCE_ID}-${MAS_APP_ID}-app-config-${MAS_WORKSPACE_ID} ${CLUSTER_ID}-watcher
+
+  fi
+
+
+  # Invoke Manage specific ansible roles
+  # ---------------------------------------------------------------------------
+  if [[ "${MAS_APP_ID}" == "manage" || "${MAS_APP_ID}" == "health" ]]; then
+
+    echo "- MAS_APPWS_SPEC  ${MAS_APPWS_SPEC}"
+    echo "- MANAGE_CONFIG_DIR  ${MANAGE_CONFIG_DIR}"
+    
+    export TEMP_MANAGE_CONFIG_DIR=${MANAGE_CONFIG_DIR}
+    export GITOPS=true
+ 
+    echo "${MAS_APPWS_SPEC}" > "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec.yml"
+    echo "${MAS_APPWS_SPEC}" > "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec_original_backup.yml"
+    cat  "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec.yml" | yq -r '.' > ${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec.json
+
+    invoke_suite_manage_attachments_config
+    
+    invoke_suite_manage_bim_config
+
+    invoke_suite_manage_birt_report_config
+
+    #invoke_suite_manage_logging_config
+
+    # TODO invoke suite_manage_customer_files_config
+
+    # TODO invoke suite_manage_doclinks_config
+    
+    
 
   fi
 
