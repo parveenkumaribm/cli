@@ -312,62 +312,123 @@ function wait_till_cr_ready(){
 }
 
 function invoke_suite_manage_bim_config() {
-  export MAS_APP_SETTINGS_BIM_MOUNT_PATH=/tmp/bim
-  export MAS_APP_SETTINGS_BIM_MOUNT_PATH=${MAS_APP_SETTINGS_BIM_MOUNT_PATH:-"/bim"}
-  export DB2_INSTANCE_NAME=db2wh-${MAS_INSTANCE_ID}-${MAS_APP_ID}
-  export DB2_NAMESPACE=db2u
-  export DB2_DBNAME=${DB2_DBNAME:-"BLUDB"}
 
-  export ROLE_NAME=suite_manage_bim_config && ansible-playbook ibm.mas_devops.run_role
-  rc=$?
-  [ $rc -ne 0 ] && exit $rc
+  export TRACK_SUITE_MANAGE_ROLES_FILE=${TEMP_MANAGE_CONFIG_DIR}/track_suite_manage_roles.json
+  sm_get_secret_file ${TRACK_SUITE_MANAGE_ROLES_SECRET} ${TRACK_SUITE_MANAGE_ROLES_FILE}
+  export BIM_INVOKED=$(jq -r .'bim' ${TRACK_SUITE_MANAGE_ROLES_FILE})
+  echo "BIM_INVOKED=${BIM_INVOKED}"
+  if [[ "${BIM_INVOKED}" != "true" ]]; then
+    export MAS_APP_SETTINGS_BIM_MOUNT_PATH=/tmp/bim
+    export MAS_APP_SETTINGS_BIM_MOUNT_PATH=${MAS_APP_SETTINGS_BIM_MOUNT_PATH:-"/bim"}
+    export DB2_INSTANCE_NAME=db2wh-${MAS_INSTANCE_ID}-${MAS_APP_ID}
+    export DB2_NAMESPACE=db2u
+    export DB2_DBNAME=${DB2_DBNAME:-"BLUDB"}
+
+    export ROLE_NAME=suite_manage_bim_config && ansible-playbook ibm.mas_devops.run_role
+    rc=$?
+    [ $rc -ne 0 ] && exit $rc
+
+    export MANAGE_BIM_RECONCILIATION="true"
+  fi
+
 
 }
 
 function invoke_suite_manage_birt_report_config() {
-  #export MAS_WORKSPACE_ID=${MAS_WORKSPACE_ID}
-  export MANAGE_WORKSPACE_CR_NAME="${MAS_INSTANCE_ID}-${MAS_WORKSPACE_ID}"
-  #export MAS_INSTANCE_ID=${MAS_INSTANCE_ID}
-  export MANAGE_CONFIG_DIR=${TEMP_MANAGE_CONFIG_DIR}/birt
-  export GITOPS=true
-  export MANAGE_REPORT_BUNDLE_SERVER_NAME=${MANAGE_REPORT_BUNDLE_SERVER_NAME:-"rpt"}
+  export TRACK_SUITE_MANAGE_ROLES_FILE=${TEMP_MANAGE_CONFIG_DIR}/track_suite_manage_roles.json
+  sm_get_secret_file ${TRACK_SUITE_MANAGE_ROLES_SECRET} ${TRACK_SUITE_MANAGE_ROLES_FILE}
+  export BIRT_INVOKED=$(jq -r .'birt' ${TRACK_SUITE_MANAGE_ROLES_FILE})
+  echo "BIRT_INVOKED=${BIRT_INVOKED}"
+  if [[ "${BIRT_INVOKED}" != "true" ]]; then
+    #export MAS_WORKSPACE_ID=${MAS_WORKSPACE_ID}
+    export MANAGE_WORKSPACE_CR_NAME="${MAS_INSTANCE_ID}-${MAS_WORKSPACE_ID}"
+    #export MAS_INSTANCE_ID=${MAS_INSTANCE_ID}
+    export MANAGE_CONFIG_DIR=${TEMP_MANAGE_CONFIG_DIR}/birt
+    export GITOPS=true
+    export MANAGE_REPORT_BUNDLE_SERVER_NAME=${MANAGE_REPORT_BUNDLE_SERVER_NAME:-"rpt"}
 
-  export ROLE_NAME=suite_manage_birt_report_config && ansible-playbook ibm.mas_devops.run_role
-  rc=$?
-  [ $rc -ne 0 ] && exit $rc
+    export ROLE_NAME=suite_manage_birt_report_config && ansible-playbook ibm.mas_devops.run_role
+    rc=$?
+    [ $rc -ne 0 ] && exit $rc
 
-  export BIRT_SERVER_BUNDLES_FILE="${MANAGE_CONFIG_DIR}/mas-${MAS_INSTANCE_ID}-birt-server-bundles.yml"
-  #TODO check if similar file content exist, proceed further if file content is new
-  # ansible role has logic to enforce idempotent, create those necessary k8s resource via gitops
-  
-  cat ${BIRT_SERVER_BUNDLES_FILE} | yq -r '.' > ${MANAGE_CONFIG_DIR}/mas-${MAS_INSTANCE_ID}-birt-server-bundles.json
-  jq '.mas_appws_spec.settings.deployment.serverBundles += input' ${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec.json ${MANAGE_CONFIG_DIR}/mas-${MAS_INSTANCE_ID}-birt-server-bundles.json > "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec_new.json"
-  cat "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec_new.json" >  "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec.json"
+    export BIRT_SERVER_BUNDLES_FILE="${MANAGE_CONFIG_DIR}/mas-${MAS_INSTANCE_ID}-birt-server-bundles.yml"
+    #TODO check if similar file content exist, proceed further if file content is new
+    # ansible role has logic to enforce idempotent, create those necessary k8s resource via gitops
+    
+    cat ${BIRT_SERVER_BUNDLES_FILE} | yq -r '.' > ${MANAGE_CONFIG_DIR}/mas-${MAS_INSTANCE_ID}-birt-server-bundles.json
+    jq '.mas_appws_spec.settings.deployment.serverBundles += input' ${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec.json ${MANAGE_CONFIG_DIR}/mas-${MAS_INSTANCE_ID}-birt-server-bundles.json > "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec_new.json"
+    cat "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec_new.json" >  "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec.json"
+
+    export MANAGE_BIRT_RECONCILIATION="true"
+  fi
+
+
 
 }
 
 
+function wait_for_container_ready_status(){
+  pod=$1
+  namespace=$2
+  while [[ true ]]
+  do
+    export POD_STATUS=`oc get pod $pod -n $namespace -o=jsonpath="{.status.conditions[?(@.type=='ContainersReady')].status}"`
+    echo_reset_dim "POD_STATUS....................... ${COLOR_MAGENTA}${POD_STATUS}"
+    if [[ $POD_STATUS == 'True' ]]; then
+      break
+    fi
+  done  
+}
+
+function manage_attachments_restart_manage_server() {
+
+  pods=$(oc get pods --selector=mas.ibm.com/appType=serverBundle -n ${MAS_APP_NAMESPACE} --output=jsonpath={.items..metadata.name} )
+  initial_pod_count=$(echo ${pods[@]} | wc -w)
+  echo "Initial pod count $(expr $initial_pod_count)"
+  echo "restarting : pods=${pods}"
+
+  for pod in $pods
+  do
+    oc delete pod ${pod} -n ${MAS_APP_NAMESPACE}
+    echo "delete pod ${pod}"
+    sleep 5
+  done
+
+  while [[ true ]]
+  do
+    pods=$(oc get pods --selector=mas.ibm.com/appType=serverBundle -n ${MAS_APP_NAMESPACE} --output=jsonpath={.items..metadata.name} )
+    post_delete_pod_count=$(echo ${pods[@]} | wc -w)
+    echo "Post delete pod count : $(expr $post_delete_pod_count)" 
+    if [[ "${post_delete_pod_count}" == "${initial_pod_count}" ]]; then
+      break
+    fi
+  done
+
+  pods=$(oc get pods --selector=mas.ibm.com/appType=serverBundle -n ${MAS_APP_NAMESPACE} --output=jsonpath={.items..metadata.name} )
+  for pod in $pods
+  do
+    wait_for_container_ready_status $pod ${MAS_APP_NAMESPACE}
+  done
+
+}
+
 # Update Manage database with COS information
 function manage_attachments_configure_database() {
-  echo
-  echo_h2 "invoke_suite_manage_attachments_db2_script Creating cos.sh file"
-  jinja -X .+ $CLI_DIR/templates/gitops/files/manage/attachments_config/cos.sh.j2 -o ${MANAGE_CONFIG_DIR}/cos.sh
-  rc=$?
-  [ $rc -ne 0 ] && exit $rc
 
-  chmod +x ${MANAGE_CONFIG_DIR}/cos.sh
-
+  COS_FILE=${MANAGE_CONFIG_DIR}/${MAS_MANAGE_ATTACHMENTS_PROVIDER}_attachment_config.sh
+  chmod +x ${COS_FILE}
   echo
-  echo_h2 "Copying cos.sh file to ${DB2_NAMESPACE}/c-${DB2_INSTANCE_NAME}-db2u-0"
-  oc cp ${MANAGE_CONFIG_DIR}/cos.sh ${DB2_NAMESPACE}/c-${DB2_INSTANCE_NAME}-db2u-0:/tmp/cos.sh -c db2u
+  echo_h2 "Copying ${COS_FILE} file to ${DB2_NAMESPACE}/c-${DB2_INSTANCE_NAME}-db2u-0"
+  oc cp ${COS_FILE} ${DB2_NAMESPACE}/c-${DB2_INSTANCE_NAME}-db2u-0:/tmp/${MAS_MANAGE_ATTACHMENTS_PROVIDER}_attachment_config.sh -c db2u
   rc=$?
   [ $rc -ne 0 ] && exit $rc
 
   echo
-  echo_h2 "Executing cos.sh file on ${DB2_NAMESPACE}/c-${DB2_INSTANCE_NAME}-db2u-0"
-  oc exec -n ${DB2_NAMESPACE} c-${DB2_INSTANCE_NAME}-db2u-0 -- su -lc '/tmp/cos.sh | tee /tmp/cos.log' db2inst1
+  echo_h2 "Executing ${COS_FILE} file on ${DB2_NAMESPACE}/c-${DB2_INSTANCE_NAME}-db2u-0"
+  oc exec -n ${DB2_NAMESPACE} c-${DB2_INSTANCE_NAME}-db2u-0 -- su -lc '/tmp/${MAS_MANAGE_ATTACHMENTS_PROVIDER}_attachment_config.sh | tee /tmp/${MAS_MANAGE_ATTACHMENTS_PROVIDER}_attachment_config.log' db2inst1
   rc=$?
   [ $rc -ne 0 ] && exit $rc
+
 }
 
 function invoke_suite_manage_attachments_config() {
@@ -376,42 +437,63 @@ function invoke_suite_manage_attachments_config() {
   export DB2_INSTANCE_NAME=db2wh-${MAS_INSTANCE_ID}-${MAS_APP_ID}
   export DB2_NAMESPACE=db2u
   export DB2_DBNAME=${DB2_DBNAME:-"BLUDB"}
-  export MANAGE_CONFIG_DIR=${TEMP_MANAGE_CONFIG_DIR}/attachments
-  export ROLE_NAME=suite_manage_attachments_config && ansible-playbook ibm.mas_devops.run_role
-  rc=$?
-  [ $rc -ne 0 ] && exit $rc
+  export TRACK_SUITE_MANAGE_ROLES_FILE=${TEMP_MANAGE_CONFIG_DIR}/track_suite_manage_roles.json
+  sm_get_secret_file ${TRACK_SUITE_MANAGE_ROLES_SECRET} ${TRACK_SUITE_MANAGE_ROLES_FILE}
 
-  export MANAGE_ATTACHMENTS_CONFIG_CERTS_FILE="${MANAGE_CONFIG_DIR}/${MAS_INSTANCE_ID}.${MAS_WORKSPACE_ID}.${MAS_APP_ID}-imported-certs.yml"
-  cat ${MANAGE_ATTACHMENTS_CONFIG_CERTS_FILE} | yq -r '.' > ${MANAGE_CONFIG_DIR}/imported-certs.json
-  jq '.mas_appws_spec.settings.deployment.importedCerts += input' ${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec.json ${MANAGE_CONFIG_DIR}/imported-certs.json  > "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec_new.json"
-  rc=$?
-  [ $rc -ne 0 ] && exit $rc
+  export ATTACHMENTS_INVOKED=$(jq -r .'attachments' ${TRACK_SUITE_MANAGE_ROLES_FILE})
+  echo "ATTACHMENTS_INVOKED=${ATTACHMENTS_INVOKED}"
+  if [[ "${ATTACHMENTS_INVOKED}" != "true" ]]; then
 
-  cat "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec_new.json" >  "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec.json"
-  
-  # TODO Execute DB2 script in db2 pod after second reconcillation
-  export MANAGE_ATTACHMENTS_CONFIGURE_DATABASE=true
+    export MANAGE_CONFIG_DIR=${TEMP_MANAGE_CONFIG_DIR}/attachments
+    export ROLE_NAME=suite_manage_attachments_config && ansible-playbook ibm.mas_devops.run_role
+    rc=$?
+    [ $rc -ne 0 ] && exit $rc
 
-  #TODO restart restart-manage-server.yml
-  
-  # Create a flag in secret manager
+    export MANAGE_ATTACHMENTS_CONFIG_CERTS_FILE="${MANAGE_CONFIG_DIR}/${MAS_INSTANCE_ID}.${MAS_WORKSPACE_ID}.manage-imported-certs.yml"
+    #TODO check if similar file content exist, proceed further if file content is new
+    if [[ -f ${MANAGE_ATTACHMENTS_CONFIG_CERTS_FILE} ]]; then  
+      cat ${MANAGE_ATTACHMENTS_CONFIG_CERTS_FILE} | yq -r '.' > ${MANAGE_CONFIG_DIR}/imported-certs.json
+      jq '.mas_appws_spec.settings.deployment.importedCerts += input' ${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec.json ${MANAGE_CONFIG_DIR}/imported-certs.json  > "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec_new.json"
+      rc=$?
+      [ $rc -ne 0 ] && exit $rc
+      cat "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec_new.json" >  "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec.json"
+      echo "invoke_suite_manage_attachments_config completed"
+      # Role is success and we have updated manage workspace CR, set this flag which will help to do db2 update, server restart later
+      export MANAGE_ATTACHMENTS_RECONCILIATION="true"
+    else
+      echo_reset_dim "${COLOR_RED}Manage attachments certs file missing ${MANAGE_ATTACHMENTS_CONFIG_CERTS_FILE}, exiting"
+      exit 1      
+    fi
 
-  #TODO check if similar file content exist, proceed further if file content is new
-  # ansible role has logic to enforce idempotent, create those necessary k8s resource via gitops
-
-
+    
+  fi
 }
 
+
+
+
+
 function invoke_suite_manage_logging_config() {
-  export COS_TYPE="aws"
-  export MANAGE_CONFIG_DIR=${TEMP_MANAGE_CONFIG_DIR}/logging
-  export ROLE_NAME=suite_manage_logging_config && ansible-playbook ibm.mas_devops.run_role
-  rc=$?
-  [ $rc -ne 0 ] && exit $rc    
-  export LOGGING_S3_DESTINATION_FILE="${MANAGE_CONFIG_DIR}/${MAS_INSTANCE_ID}.${MAS_WORKSPACE_ID}.${MAS_APP_ID}-s3-destination.yml"
-  cat ${LOGGING_S3_DESTINATION_FILE} | yq -r '.' > ${MANAGE_CONFIG_DIR}/s3-destination.json
-  jq '.mas_appws_spec.settings.deployment.loggingS3Destination += input' ${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec.json ${MANAGE_CONFIG_DIR}/s3-destination.json > "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec_new.json"
-  cat "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec_new.json" >  "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec.json"
+
+  export TRACK_SUITE_MANAGE_ROLES_FILE=${TEMP_MANAGE_CONFIG_DIR}/track_suite_manage_roles.json
+  sm_get_secret_file ${TRACK_SUITE_MANAGE_ROLES_SECRET} ${TRACK_SUITE_MANAGE_ROLES_FILE}
+
+  export LOGGING_INVOKED=$(jq -r .'logging' ${TRACK_SUITE_MANAGE_ROLES_FILE})
+  echo "LOGGING_INVOKED=${LOGGING_INVOKED}"
+  if [[ "${LOGGING_INVOKED}" != "true" ]]; then
+    export COS_TYPE="aws"
+    export MANAGE_CONFIG_DIR=${TEMP_MANAGE_CONFIG_DIR}/logging
+    export ROLE_NAME=suite_manage_logging_config && ansible-playbook ibm.mas_devops.run_role
+    rc=$?
+    [ $rc -ne 0 ] && exit $rc    
+    export LOGGING_S3_DESTINATION_FILE="${MANAGE_CONFIG_DIR}/${MAS_INSTANCE_ID}.${MAS_WORKSPACE_ID}.${MAS_APP_ID}-s3-destination.yml"
+    cat ${LOGGING_S3_DESTINATION_FILE} | yq -r '.' > ${MANAGE_CONFIG_DIR}/s3-destination.json
+    jq '.mas_appws_spec.settings.deployment.loggingS3Destination += input' ${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec.json ${MANAGE_CONFIG_DIR}/s3-destination.json > "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec_new.json"
+    cat "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec_new.json" >  "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec.json"  
+    
+    export MANAGE_LOGGING_RECONCILIATION="true"
+
+  fi
 }
 
 
@@ -675,7 +757,7 @@ function gitops_suite_app_config() {
 
   # Commit and push to github target repo
   # ---------------------------------------------------------------------------
-  if [ "$GITHUB_PUSH" == "true" ]; then
+  if [ "${GITHUB_PUSH}" == "true" ]; then
     echo
     echo_h2 "Restart application-controller ..."
     oc rollout restart statefulset/openshift-gitops-application-controller -n openshift-gitops
@@ -685,7 +767,7 @@ function gitops_suite_app_config() {
     echo
     echo_h2 "Commit and push changes to GitHub repo $GITHUB_ORG $GITHUB_REPO"
     save_to_target_git_repo $GITHUB_HOST $GITHUB_ORG $GITHUB_REPO $GIT_BRANCH $GITOPS_APPS_DIR "${GIT_COMMIT_MSG}"
-    remove_git_repo_clone $GITOPS_WORKING_DIR/$GITHUB_REPO
+    # remove_git_repo_clone $GITOPS_WORKING_DIR/$GITHUB_REPO
 
     argocd_login
     argocd_sync ${CLUSTER_ID}-watcher
@@ -694,8 +776,8 @@ function gitops_suite_app_config() {
 
     check_argo_app_synced mas-${MAS_INSTANCE_ID}-${MAS_APP_ID}-app-config-${MAS_WORKSPACE_ID} ${CLUSTER_ID}-watcher mas-${MAS_INSTANCE_ID}-${MAS_APP_ID}
     check_argo_app_healthy mas-${MAS_INSTANCE_ID}-${MAS_APP_ID}-app-config-${MAS_WORKSPACE_ID} ${CLUSTER_ID}-watcher
-
   fi
+
 
 
   # Invoke Manage specific ansible roles
@@ -704,19 +786,22 @@ function gitops_suite_app_config() {
 
     echo "- MAS_APPWS_SPEC  ${MAS_APPWS_SPEC}"
     echo "- MANAGE_CONFIG_DIR  ${MANAGE_CONFIG_DIR}"
-    
+    export ATTACHMENTS_SUCCESS="false" PVC_SUCCESS="false" LOGGING_SUCCESS="false" BIM_SUCCESS="false" BIRT_REPORT_SUCCESS="false" CUSTOMER_FILES_SUCCESS="false" DOCLINKS_SUCCESS="false"
+
     export TEMP_MANAGE_CONFIG_DIR=${MANAGE_CONFIG_DIR}
     export GITOPS=true
+    export TRACK_SUITE_MANAGE_ROLES_SECRET=${ACCOUNT_ID}${SECRETS_KEY_SEPERATOR}${CLUSTER_ID}${SECRETS_KEY_SEPERATOR}${MAS_INSTANCE_ID}${SECRETS_KEY_SEPERATOR}${MAS_APP_ID}${SECRETS_KEY_SEPERATOR}track_suite_manage_roles
+
  
     echo "${MAS_APPWS_SPEC}" > "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec.yml"
     echo "${MAS_APPWS_SPEC}" > "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec_original_backup.yml"
-    cat  "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec.yml" | yq -r '.' > ${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec.json
+    cat "${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec.yml" | yq -r '.' > ${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec.json
 
     invoke_suite_manage_attachments_config
     
-    invoke_suite_manage_bim_config
+    #invoke_suite_manage_bim_config
 
-    invoke_suite_manage_birt_report_config
+    #invoke_suite_manage_birt_report_config
 
     #invoke_suite_manage_logging_config
 
@@ -724,9 +809,77 @@ function gitops_suite_app_config() {
 
     # TODO invoke suite_manage_doclinks_config
     
+    echo
+    echo $(cat ${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec.json) | yq -y >  ${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec.yml
+    export MAS_APPWS_SPEC=$(cat ${TEMP_MANAGE_CONFIG_DIR}/mas_appws_spec.yml | yq -r '.' --yaml-output)
+    echo "after all processing"    
+    echo ${MAS_APPWS_SPEC}
     
+    # Generate ArgoApps
+    # ---------------------------------------------------------------------------
+    echo
+    echo_h2 "Generating Argo Project and Applications"
+    echo "- Project"
+    jinja -X .+ $CLI_DIR/templates/gitops/appproject.yaml.j2 -o ${GITOPS_APPS_DIR}/${MAS_INSTANCE_ID}.appproject.yaml
+
+    echo "- IBM Maximo Application Suite Application Platform"
+    jinja -X .+ $CLI_DIR/templates/gitops/ibm-mas-app-config.yaml.j2 -o ${GITOPS_APPS_DIR}/${MAS_INSTANCE_ID}.${MAS_WORKSPACE_ID}.ibm-mas-${MAS_APP_ID}-app-config.yaml
+    
+    # Commit and push to github target repo
+    # ---------------------------------------------------------------------------
+    if [ "${GITHUB_PUSH}" == "true" ]; then
+      echo
+      echo_h2 "Commit and push changes to GitHub repo $GITHUB_ORG $GITHUB_REPO"
+      save_to_target_git_repo $GITHUB_HOST $GITHUB_ORG $GITHUB_REPO $GIT_BRANCH $GITOPS_APPS_DIR "${GIT_COMMIT_MSG}"
+      remove_git_repo_clone $GITOPS_WORKING_DIR/$GITHUB_REPO
+
+      argocd_login
+      argocd_sync ${CLUSTER_ID}-watcher
+      argocd_hard_refresh mas-${MAS_INSTANCE_ID}-${MAS_APP_ID}-app-config-${MAS_WORKSPACE_ID}
+      add_role_to_user mas-${MAS_INSTANCE_ID}-${MAS_APP_ID}
+
+      check_argo_app_synced mas-${MAS_INSTANCE_ID}-${MAS_APP_ID}-app-config-${MAS_WORKSPACE_ID} ${CLUSTER_ID}-watcher mas-${MAS_INSTANCE_ID}-${MAS_APP_ID}
+      check_argo_app_healthy mas-${MAS_INSTANCE_ID}-${MAS_APP_ID}-app-config-${MAS_WORKSPACE_ID} ${CLUSTER_ID}-watcher
+    fi
+
+        
+    if [[ "${MANAGE_ATTACHMENTS_RECONCILIATION}" == "true" ]]; then
+      # Execute attachment DB2 script in db2 pod 
+      manage_attachments_configure_database
+      # Restart manage-server
+      manage_attachments_restart_manage_server
+      # Create flag for idempotent
+      export ATTACHMENTS_SUCCESS=true
+      update_secret
+    fi
+
+    if [[ "${MANAGE_LOGGING_RECONCILIATION}" == "true" ]]; then
+      export LOGGING_SUCCESS=true
+      update_secret
+    fi
+
+    if [[ "${MANAGE_BIRT_RECONCILIATION}" == "true" ]]; then
+      export BIRT_SUCCESS=true
+      update_secret
+    fi
+
+    if [[ "${MANAGE_BIM_RECONCILIATION}" == "true" ]]; then
+      export BIM_SUCCESS=true
+      update_secret
+    fi
 
   fi
 
+  if [ "$GITHUB_PUSH" == "true" ]; then
+	  remove_git_repo_clone $GITOPS_WORKING_DIR/$GITHUB_REPO
+  fi
+}
+
+function update_secret(){
+  echo "update_secret name... ${TRACK_SUITE_MANAGE_ROLES_SECRET}"
+  sm_update_secret ${TRACK_SUITE_MANAGE_ROLES_SECRET} "{\"attachments\": \"$ATTACHMENTS_SUCCESS\", \"pvc\": \"$PVC_SUCCESS\", \"logging\": \"$LOGGING_SUCCESS\", \"bim\": \"$BIM_SUCCESS\", \"birt_report\": \"$BIRT_REPORT_SUCCESS\", \"customer_files\": \"$CUSTOMER_FILES_SUCCESS\", \"doclinks\": \"$DOCLINKS_SUCCESS\"}"
 
 }
+
+
+
