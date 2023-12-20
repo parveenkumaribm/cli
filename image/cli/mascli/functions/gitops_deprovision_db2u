@@ -193,6 +193,8 @@ function gitops_deprovision_db2u() {
   # ---------------------------------------------------------------------------
   echo " Deleting $AWS_DB2_SECRET_ID"
   sm_delete_secret $AWS_DB2_SECRET_ID
+  aws secretsmanager delete-secret --force-delete-without-recovery --secret-id   development/fvtsaas/fvtsaas/manage/db2cfg  --output json 2> /dev/null
+
 
 
   if [ -z $GIT_SSH ]; then
