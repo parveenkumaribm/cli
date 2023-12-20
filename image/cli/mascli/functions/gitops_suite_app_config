@@ -799,11 +799,11 @@ function gitops_suite_app_config() {
 
     invoke_suite_manage_attachments_config
     
-    #invoke_suite_manage_bim_config
+    invoke_suite_manage_bim_config
 
-    #invoke_suite_manage_birt_report_config
+    invoke_suite_manage_birt_report_config
 
-    #invoke_suite_manage_logging_config
+    invoke_suite_manage_logging_config
 
     # TODO invoke suite_manage_customer_files_config
 
