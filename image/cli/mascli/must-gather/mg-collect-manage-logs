@@ -54,4 +54,18 @@ echo "- ${COLOR_BLUE} Getting db2u Pod Files${TEXT_RESET}"
     echo_highlight "Unable to find db2u namespace"
   fi
 
+# Getting Server Bundle Pod Files
+# =========================
+echo "- ${COLOR_BLUE} Getting Server Bundle Pod Files${TEXT_RESET}"
+POD_NAME=$(oc -n $NAMESPACE get pods -l "mas.ibm.com/appType= serverBundle" -o jsonpath="{.items[*].metadata.name}")
+for POD in ${POD_NAME[@]}; do
+  if [[ "$POD_NAME" == "" ]]; then
+    echo_warning "Server Bundle pod was not found"
+    exit 1
+  fi
+  createFolder
+  # Copying files to folder
+  oc cp $NAMESPACE/$POD:logs $OUTPUT_DIR/resources/$NAMESPACE/pods_files/$APP/files --retries=-1
+done
+
 exit 0
