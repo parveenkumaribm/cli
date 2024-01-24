@@ -23,15 +23,12 @@ createFolder () {
 echo "- ${COLOR_BLUE} Getting Maxinst Pod Files${TEXT_RESET}"
 POD=$(oc -n $NAMESPACE get pods -l "mas.ibm.com/appType= maxinstudb" -o jsonpath="{.items[*].metadata.name}")
 
-if [[ "$POD" == "" ]]; then
+if [[ "$POD" != "" ]]; then
+  createFolder 
+  oc cp $NAMESPACE/$POD:log $OUTPUT_DIR/resources/$NAMESPACE/pods_files/$APP/files --retries=-1
+else
   echo_warning "Maxinst pod was not found"
-  exit 1
 fi
-createFolder 
-
-# Copying files to folder
-oc cp $NAMESPACE/$POD:log $OUTPUT_DIR/resources/$NAMESPACE/pods_files/$APP/files --retries=-1
-
 
 # Getting db2u Pod Files
 # =========================
@@ -40,16 +37,13 @@ echo "- ${COLOR_BLUE} Getting db2u Pod Files${TEXT_RESET}"
  NAMESPACE=$(oc get namespace db2u -o jsonpath='{.metadata.name}' --ignore-not-found)
   if [[ "$NAMESPACE" != "" ]]; then
     POD_NAME=$(oc -n $NAMESPACE get pods -l "type=engine" -o jsonpath="{.items[*].metadata.name}")
-    for POD in ${POD_NAME[@]}; do
-      if [[ "$POD_NAME" == "" ]]; then
-        echo_warning "DB2U pod was not found"
-        exit 1
-      fi
-      createFolder
-      
-      # Copying files to folder
-      oc cp $NAMESPACE/$POD:tmp $OUTPUT_DIR/resources/$NAMESPACE/pods_files/$APP/files --retries=-1
-    done
+    if [[ "$POD_NAME" != "" ]]; then
+      for POD in ${POD_NAME[@]}; do
+        createFolder
+        oc cp $NAMESPACE/$POD:tmp $OUTPUT_DIR/resources/$NAMESPACE/pods_files/$APP/files --retries=-1
+      done
+    else
+      echo_warning "DB2U pod was not found"
   else
     echo_highlight "Unable to find db2u namespace"
   fi
@@ -57,15 +51,15 @@ echo "- ${COLOR_BLUE} Getting db2u Pod Files${TEXT_RESET}"
 # Getting Server Bundle Pod Files
 # =========================
 echo "- ${COLOR_BLUE} Getting Server Bundle Pod Files${TEXT_RESET}"
+NAMESPACE=$1
 POD_NAME=$(oc -n $NAMESPACE get pods -l "mas.ibm.com/appType= serverBundle" -o jsonpath="{.items[*].metadata.name}")
-for POD in ${POD_NAME[@]}; do
-  if [[ "$POD_NAME" == "" ]]; then
-    echo_warning "Server Bundle pod was not found"
-    exit 1
-  fi
-  createFolder
-  # Copying files to folder
-  oc cp $NAMESPACE/$POD:logs $OUTPUT_DIR/resources/$NAMESPACE/pods_files/$APP/files --retries=-1
-done
+if [[ "$POD_NAME" != "" ]]; then
+  for POD in ${POD_NAME[@]}; do
+    createFolder
+    oc cp $NAMESPACE/$POD:logs $OUTPUT_DIR/resources/$NAMESPACE/pods_files/$APP/files --retries=-1
+  done
+else
+  echo_warning "Server Bundle pod was not found"
+fi
 
 exit 0
