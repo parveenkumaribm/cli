@@ -25,7 +25,7 @@ POD=$(oc -n $NAMESPACE get pods -l "mas.ibm.com/appType= maxinstudb" -o jsonpath
 
 if [[ "$POD" != "" ]]; then
   createFolder 
-  oc cp $NAMESPACE/$POD:log $OUTPUT_DIR/resources/$NAMESPACE/pods_files/$APP/files --retries=-1
+  oc cp $NAMESPACE/$POD:log $OUTPUT_DIR/resources/$NAMESPACE/pods_files/$APP/files --retries 50
 else
   echo_warning "Maxinst pod was not found"
 fi
@@ -40,10 +40,11 @@ echo "- ${COLOR_BLUE} Getting db2u Pod Files${TEXT_RESET}"
     if [[ "$POD_NAME" != "" ]]; then
       for POD in ${POD_NAME[@]}; do
         createFolder
-        oc cp $NAMESPACE/$POD:tmp $OUTPUT_DIR/resources/$NAMESPACE/pods_files/$APP/files --retries=-1
+        oc cp $NAMESPACE/$POD:tmp $OUTPUT_DIR/resources/$NAMESPACE/pods_files/$APP/files --retries 50
       done
     else
       echo_warning "DB2U pod was not found"
+    fi
   else
     echo_highlight "Unable to find db2u namespace"
   fi
@@ -56,7 +57,7 @@ POD_NAME=$(oc -n $NAMESPACE get pods -l "mas.ibm.com/appType= serverBundle" -o j
 if [[ "$POD_NAME" != "" ]]; then
   for POD in ${POD_NAME[@]}; do
     createFolder
-    oc cp $NAMESPACE/$POD:logs $OUTPUT_DIR/resources/$NAMESPACE/pods_files/$APP/files --retries=-1
+    oc cp $NAMESPACE/$POD:logs $OUTPUT_DIR/resources/$NAMESPACE/pods_files/$APP/files --retries 50
   done
 else
   echo_warning "Server Bundle pod was not found"
