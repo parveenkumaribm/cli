@@ -50,32 +50,9 @@ spec:
     - name: mas_workspace_id
       type: string
       description: Workspace ID in MAS to use for running the tests
-    - name: devops_cos_crn
-      type: string
-      description: Object Storage Resource Instance Id in IBM Cloud (optional)
-      default: ""
-    - name: devops_cos_upload_folder
-      type: string
-      description: Directory inside container that will be uploaded to Object Storage (optional)
-      default: ""
-    - name: devops_ibmcloud_apikey
-      description: IBM Cloud API Key to access Object Storage resource (optional)
-      default: ""
 
     # Test-specific Information (all optional)
     # -------------------------------------------------------------------------
-    - name: ddp_apikey
-      type: string
-      description: Partium username (required by fvt-adoptionusagereporter)
-      default: ""
-    - name: partium_username
-      type: string
-      description: Partium username (required by fvt-coreapi-workspacemgmt)
-      default: ""
-    - name: partium_password
-      type: string
-      description: Partium password (required by fvt-coreapi-workspacemgmt)
-      default: ""
     - name: artifactory_token
       type: string
       description: Artifactory Token (required by fvt-ibm-mas-manage to pull test container content)
@@ -170,21 +147,28 @@ spec:
       - name: FVT_ENABLE_DEBUG
         value: "$(params.fvt_enable_debug)"
 
+      # Test Data
       - name: DDP_APIKEY
-        value: $(params.ddp_apikey)
+        valueFrom:
+          secretKeyRef:
+            name: mas-fvt-core
+            key: DDP_APIKEY
+            optional: true
       - name: PARTIUM_USERNAME
-        value: $(params.partium_username)
+        valueFrom:
+          secretKeyRef:
+            name: mas-fvt-core
+            key: PARTIUM_USERNAME
+            optional: true
       - name: PARTIUM_PASSWORD
-        value: $(params.partium_password)
+        valueFrom:
+          secretKeyRef:
+            name: mas-fvt-core
+            key: PARTIUM_PASSWORD
+            optional: true
+
       - name: ARTIFACTORY_TOKEN
         value: $(params.artifactory_token)
-
-      - name: DEVOPS_COS_CRN
-        value: $(params.devops_cos_crn)
-      - name: DEVOPS_COS_UPLOAD_FOLDER
-        value: $(params.devops_cos_upload_folder)
-      - name: DEVOPS_IBMCLOUD_APIKEY
-        value: $(params.devops_ibmcloud_apikey)
 
       # Assist Specific information
       - name: BROWSERSTACK_TESTSERVER

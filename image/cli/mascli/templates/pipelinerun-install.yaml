@@ -13,6 +13,11 @@ spec:
   timeout: 24h
 
   params:
+    # Cluster config
+    # -------------------------------------------------------------------------
+    - name: ocp_ingress_tls_secret_name
+      value: '$OCP_INGRESS_TLS_SECRET_NAME'
+
     # Enable development catalogs
     # -------------------------------------------------------------------------
     - name: artifactory_username
@@ -140,6 +145,8 @@ spec:
       value: '$MONGODB_CPU_REQUESTS'
     - name: mongodb_provider
       value: '$MONGODB_PROVIDER'
+    - name: mongodb_version
+      value: '$MONGODB_VERSION'
     - name: mongodb_action
       value: '$MONGODB_ACTION'
 
@@ -271,6 +278,13 @@ spec:
     - name: mas_catalog_digest
       value: '$MAS_CATALOG_DIGEST'
 
+    # Dependencies - Certificate Manager
+    # -------------------------------------------------------------------------
+    - name: cert_manager_provider
+      value: '$CERT_MANAGER_PROVIDER'
+    - name: cert_manager_action
+      value: '$CERT_MANAGER_ACTION'
+
     # MAS DNS Integrations - General
     # -------------------------------------------------------------------------
     - name: dns_provider
@@ -354,6 +368,8 @@ spec:
       value: '$MAS_ICR_CPOPEN'
     - name: mas_trust_default_cas
       value: '$MAS_TRUST_DEFAULT_CAS'
+    - name: enable_ipv6
+      value: '$ENABLE_IPV6'
 
     # MAS Workspace
     # -------------------------------------------------------------------------

@@ -33,13 +33,25 @@
         - fvt-assist
         - fvt-core
         - fvt-deprovision-after
+        - fvt-health
+        - fvt-iot
         - fvt-manage
+        - fvt-manage-civil
+        - fvt-manage-is
         - fvt-manage-regr
+        - fvt-mobile
+        - fvt-monitor
+        - fvt-optimizer
+        - fvt-predict
         - fvt-sls
+        - fvt-data-dictionary
+        - fvt-uninstall-after
+        - fvt-visualinspection
         - update
         - upgrade
         - rollback
         - uninstall
+        - fvt-launcher
 
     # 2. Generate Pipelines
     # -------------------------------------------------------------------------
