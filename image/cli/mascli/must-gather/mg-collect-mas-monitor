@@ -1,5 +1,25 @@
 #!/bin/bash
 
-# No App-specific must-gather (yet)
+set -e
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+. $DIR/../functions/internal/utils
+
+NAMESPACE=$1
+OUTPUT_DIR=$2
+
+# Collect Monitor Logs
+# -----------------------------------------------------------------------------
+echo_h4 "Collect Monitor Files"
+$DIR/mg-collect-monitor-logs $NAMESPACE $OUTPUT_DIR
+
+# Collect Reconcile Logs
+# -----------------------------------------------------------------------------
+echo_h4 "Collect Reconcile Logs"
+# Main Monitor Component and workspace
+$DIR/mg-collect-reconcile-logs $NAMESPACE control-plane ibm-mas-monitor $OUTPUT_DIR
+$DIR/mg-collect-reconcile-logs $NAMESPACE mas.ibm.com/appType entitymgr-ws-operator $OUTPUT_DIR
+
+# Truststores
+$DIR/mg-collect-reconcile-logs $NAMESPACE operator ibm-truststore-mgr $OUTPUT_DIR
 
 exit 0
