@@ -1,4 +1,4 @@
-FROM quay.io/ibmmas/cli-base:latest
+FROM quay.io/ibmmas/cli-base:1.1.0-pre.cpdcli
 ARG VERSION_LABEL
 
 # 1. Copy basics
