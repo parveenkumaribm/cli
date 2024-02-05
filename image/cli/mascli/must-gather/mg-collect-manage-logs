@@ -18,6 +18,20 @@ createFolder () {
   mkdir -p "$OUTPUT_DIR/resources/$NAMESPACE/pods_files/$APP/files"
 }
 
+# Getting EntityMgr-WS Pod Files
+# =========================
+echo "- ${COLOR_BLUE} Getting EntityMgr-WS Pod Files${TEXT_RESET}"
+NAMESPACE=$1
+POD_NAME=$(oc -n $NAMESPACE get pods -l "mas.ibm.com/appType= entitymgr-ws-operator" -o jsonpath="{.items[*].metadata.name}")
+if [[ "$POD_NAME" != "" ]]; then
+  for POD in ${POD_NAME[@]}; do
+    createFolder
+    oc cp $NAMESPACE/$POD:logs $OUTPUT_DIR/resources/$NAMESPACE/pods_files/$APP/files --retries 50
+  done
+else
+  echo_warning "EntityMgr-WS pod was not found"
+fi
+
 # Getting Maxinst Pod Files
 # =========================
 echo "- ${COLOR_BLUE} Getting Maxinst Pod Files${TEXT_RESET}"
