@@ -22,17 +22,10 @@ createFolder () {
 # ==================================================
 echo "- ${COLOR_BLUE} Getting route_manager.log from EntityMgr-WS Pod ${TEXT_RESET}"
 NAMESPACE=$1
-POD_NAME=$(oc -n $NAMESPACE get pods -l "mas.ibm.com/appType= entitymgr-ws-operator" -o jsonpath="{.items[*].metadata.name}")
-if [[ "$POD_NAME" != "" ]]; then
-  FILE=$(oc describe $NAMESPACE/$POD:/tmp/route_manager.log)
-  # FILE=$(oc cp $NAMESPACE/$POD:/tmp/route_manager.log $OUTPUT_DIR/resources/$NAMESPACE/pods_files/$APP/files/route_manager.log)
-  if [[ -f "$FILE" ]]; then	
-  # if [[ -s "$FILE" ]]; then
+POD=$(oc -n $NAMESPACE get pods -l "mas.ibm.com/appType= entitymgr-ws-operator" -o jsonpath="{.items[*].metadata.name}")
+if [[ "$POD" != "" ]]; then
     createFolder
     oc cp $NAMESPACE/$POD:/tmp/route_manager.log $OUTPUT_DIR/resources/$NAMESPACE/pods_files/$APP/files/route_manager.log --retries 50
-  else
-    echo_warning "$FILE does not exist."
-  fi
 else
   echo_warning "EntityMgr-WS pod was not found"
 fi
