@@ -18,16 +18,23 @@ createFolder () {
   mkdir -p "$OUTPUT_DIR/resources/$NAMESPACE/pods_files/$APP/files"
 }
 
-# Getting route_manager.log from EntityMgr-WS Pod 
+# Getting route_manager.log from EntityMgr-WS Pod
 # ==================================================
 echo "- ${COLOR_BLUE} Getting route_manager.log from EntityMgr-WS Pod ${TEXT_RESET}"
 NAMESPACE=$1
 POD=$(oc -n $NAMESPACE get pods -l "mas.ibm.com/appType= entitymgr-ws-operator" -o jsonpath="{.items[*].metadata.name}")
 if [[ "$POD" != "" ]]; then
+  FILE="$(oc -n $NAMESPACE exec -it $POD -c manager -- find /tmp -iname 'route_manager*' -type f)"
+  if [[ "$FILE" != "" ]]; then
     createFolder
-    oc cp $NAMESPACE/$POD:/tmp/route_manager.log $OUTPUT_DIR/resources/$NAMESPACE/pods_files/$APP/files/route_manager.log --retries 50
+    #oc cp $NAMESPACE/$POD:/tmp/route_manager.log $OUTPUT_DIR/resources/$NAMESPACE/pods_files/$APP/files/route_manager.log --retries 50
+    oc -n $NAMESPACE exec -it $POD -- cp /tmp/route_manager.log /opt/ansible/route_manager.log
+    oc cp $NAMESPACE/$POD:route_manager.log $OUTPUT_DIR/resources/$NAMESPACE/pods_files/$APP/files/route_manager.log --retries 50
+  else
+    echo_warning "route_manager.log not available on $POD pod"
+  fi
 else
-  echo_warning "EntityMgr-WS pod was not found"
+  echo_warning "$POD pod was not found"
 fi
 
 # Getting Maxinst Pod Files
