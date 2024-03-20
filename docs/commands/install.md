@@ -56,7 +56,6 @@ Usage
 - `--kafka-provider KAFKA_PROVIDER`                             Required. Set Kafka provider. Supported options are `redhat` (Red Hat AMQ Streams), `strimzi` and `ibm` (IBM Event Streams) and `aws` (AWS MSK)
 - `--kafka-version KAFKA_VERSION`                               Optional. Set version of the Kafka cluster that the Strimzi or AMQ Streams operator will create
 - `--kafka-namespace KAFKA_NAMESPACE`                           Optional. Set Kafka namespace. Only applicable if installing `redhat` (Red Hat AMQ Streams) or `strimzi`
-- `--kafka-cluster-name KAFKA_CLUSTER_NAME`                     Optional. Set Kafka cluster name. Only applicable if installing `redhat` (Red Hat AMQ Streams), `strimzi` or `aws` (AWS MSK)
 - `--kafka-username KAFKA_USER_NAME`                            Required. Set Kafka instance username. Only applicable if installing `redhat` (Red Hat AMQ Streams), `strimzi` or `aws` (AWS MSK)
 - `--kafka-password KAFKA_USER_PASSWORD`                        Required. Set Kafka instance password. Only applicable if installing `redhat` (Red Hat AMQ Streams), `strimzi` or `aws` (AWS MSK)
 
@@ -112,6 +111,30 @@ Usage
 
 - `--manage-server-bundle-size MAS_APP_SETTINGS_SERVER_BUNDLES_SIZE`                        Set Manage server bundle size configuration i.e `dev, small, jms or snojms`
 - `--manage-components MAS_APPWS_COMPONENTS`                                                Set Manage Components to be installed i.e `base=latest,health=latest,civil=latest`
+            
+  List of all identifiers for Manage industry solutions and add-ons that can be installed with Manage (base):
+
+    - `acm (Asset Configuration Manager)`
+    - `aviation (Aviation)`
+    - `civil (Civil Infrastructure)`
+    - `envizi (Envizi)`
+    - `hse (Health, Safety and Environment)`
+    - `health (Health)`
+    - `icd (Maximo IT)`
+    - `nuclear (Nuclear)`
+    - `oilandgas (Oil & Gas)`
+    - `oracleadapter (Connector for Oracle Applications)`
+    - `sapadapter (Connector for SAP Applications)`
+    - `serviceprovider (Service Provider)`
+    - `spatial (Spatial)`
+    - `strategize (Strategize)`
+    - `transportation (Transportation)`
+    - `tririga (Tririga)`
+    - `utilities (Utilities)`
+    - `workday (Workday Applications)`
+
+    - `For detailed information about each of the available Manage Industry Solutions or Add-ons, please check the [Maximo Manage components](https://www.ibm.com/docs/en/mas-cd/maximo-manage/continuous-delivery?topic=overview-maximo-manage-components) documentation.`
+
 - `--manage-customization-archive-name MAS_APP_SETTINGS_CUSTOMIZATION_ARCHIVE_NAME`         Set Manage Archive name
 - `--manage-customization-archive-url MAS_APP_SETTINGS_CUSTOMIZATION_ARCHIVE_URL`           Set Manage Archive url
 - `--manage-customization-archive-username MAS_APP_SETTINGS_CUSTOMIZATION_ARCHIVE_USERNAME` Set Manage Archive username, in case url requires basic authentication to pull the archive
