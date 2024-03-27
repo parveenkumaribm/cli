@@ -9,16 +9,15 @@ Usage:
 Where ${COLOR_YELLOW}specified${TEXT_RESET} each option may also be defined by setting the appropriate environment variable.
 When no options are specified on the command line, interactive-mode will be enabled by default.
 
+AWS Secrets Manager Configuration (Required):
+  --sm-aws-secret-region ${COLOR_YELLOW}SM_AWS_REGION${TEXT_RESET}          Region of the AWS Secrets Manager to use
+
 GitOps Configuration:
   -d, --dir ${COLOR_YELLOW}GITOPS_WORKING_DIR${TEXT_RESET}           Directory for GitOps repository
-  -g, --gitops-version ${COLOR_YELLOW}GITOPS_VERSION${TEXT_RESET}    Version of ibm-mas/gitops to use
   -a, --account-id ${COLOR_YELLOW}ACCOUNT_ID${TEXT_RESET}            Account name that the cluster belongs to
   -c, --cluster-id ${COLOR_YELLOW}CLUSTER_ID${TEXT_RESET}            Cluster ID
-  -m, --mas-instance-id ${COLOR_YELLOW}MAS_INSTANCE_ID${TEXT_RESET}  IBM Suite Maximo Application Suite Instance ID
   -A, --argocd-check ${COLOR_YELLOW}ARGOCD_CHECK${TEXT_RESET}        ArgoCD check flag, when set to true will make ArgoCD calls
-
-MongoDb Provider Selection:
-      --mongo-provider ${COLOR_YELLOW}MONGODB_PROVIDER${TEXT_RESET}  The mongodb provider to install. Only "aws" is supported
+  --disable-postdelete-hooks ${COLOR_YELLOW}USE_POSTDELETE_HOOKS${TEXT_RESET}  Unless set (or USE_POSTDELETE_HOOKS exported and set to false), PostDelete hooks will be deployed to ensure all CRs are properly cleaned up by ArgoCD on deletion. !!! PostDelete hooks should never be used when ArgoCD version < 2.10 !!! 
 
 Automatic GitHub Push:
   -P, --github-push ${COLOR_YELLOW}GITHUB_PUSH${TEXT_RESET}        Enable automatic push to GitHub
@@ -40,9 +39,7 @@ function gitops_cis_compliance_noninteractive() {
   GIT_COMMIT_MSG="gitops-cis-compliance commit"
   export GITOPS_VERSION=${GITOPS_VERSION:-poc}
 
-  # defaults for fvtsaas
-  # TODO: will need to add explicit args to pipeline when we start using this code to deploy to MCSP
-  export REGION=${REGION:-${SM_AWS_REGION}}
+  export REGION_ID=${REGION_ID:-${SM_AWS_REGION}}
   export ARGOCD_CHECK=${ARGOCD_CHECK:-"true"}
 
   while [[ $# -gt 0 ]]
@@ -54,20 +51,24 @@ function gitops_cis_compliance_noninteractive() {
       -d|--dir)
         export GITOPS_WORKING_DIR=$1 && shift
         ;;
-      -g|--gitops-version)
-        export GITOPS_VERSION=$1 && shift
-        ;;
       -a|--account-id)
         export ACCOUNT_ID=$1 && shift
         ;;
       -c|--cluster-id)
         export CLUSTER_ID=$1 && shift
         ;;
-      -r|--region)
-        export REGION=$1 && shift
-        ;;
       -A|--argocd-check)
         export ARGOCD_CHECK=$1 && shift
+        ;;
+      --disable-postdelete-hooks)
+        export USE_POSTDELETE_HOOKS=false
+        ;;
+
+      # AWS Secrets Manager Configuration
+      --sm-aws-secret-region)
+        export SM_AWS_REGION=$1
+        export REGION_ID=$1
+        shift
         ;;
 
       # Automatic GitHub Push
@@ -108,7 +109,8 @@ function gitops_cis_compliance_noninteractive() {
 
   [[ -z "$ACCOUNT_ID" ]] && gitops_cis_compliance_help "ACCOUNT_ID is not set"
   [[ -z "$CLUSTER_ID" ]] && gitops_cis_compliance_help "CLUSTER_ID is not set"
-  [[ -z "$REGION" ]] && gitops_cis_compliance_help "REGION is not set"
+  [[ -z "$REGION_ID" ]] && gitops_cis_compliance_help "REGION_ID is not set"
+  [[ -z "$SM_AWS_REGION" ]] && gitops_cis_compliance_help "SM_AWS_REGION is not set"
 
   if [[ "$GITHUB_PUSH" == "true" ]]; then
     [[ -z "$GITHUB_HOST" ]] && gitops_cis_compliance_help "GITHUB_HOST is not set"
@@ -118,6 +120,7 @@ function gitops_cis_compliance_noninteractive() {
   fi
 
 }
+
 
 function gitops_cis_compliance() {
   # Take the first parameter off (it will be create-gitops)
@@ -131,7 +134,8 @@ function gitops_cis_compliance() {
   fi
 
   mkdir -p ${GITOPS_WORKING_DIR}
-  GITOPS_CLUSTER_DIR=${GITOPS_WORKING_DIR}/${GITHUB_REPO}/${ACCOUNT_ID}/${REGION}/${CLUSTER_ID}
+  GITOPS_CLUSTER_DIR=${GITOPS_WORKING_DIR}/${GITHUB_REPO}/${ACCOUNT_ID}/${REGION_ID}/${CLUSTER_ID}
+  export USE_POSTDELETE_HOOKS=${USE_POSTDELETE_HOOKS:-true}
 
   echo
   reset_colors
@@ -140,17 +144,11 @@ function gitops_cis_compliance() {
   echo "${TEXT_DIM}"
   echo_h2 "Target" "    "
   echo_reset_dim "Account ID ............................ ${COLOR_MAGENTA}${ACCOUNT_ID}"
-  echo_reset_dim "Region ................................ ${COLOR_MAGENTA}${REGION}"
+  echo_reset_dim "Region ID  ............................ ${COLOR_MAGENTA}${REGION_ID}"
   echo_reset_dim "Cluster ID ............................ ${COLOR_MAGENTA}${CLUSTER_ID}"
   echo_reset_dim "Cluster Config Directory .............. ${COLOR_MAGENTA}${GITOPS_CLUSTER_DIR}"
-  echo_reset_dim "ArgoCD Check .......................... ${COLOR_MAGENTA}${ARGOCD_CHECK}"
-  
-  reset_colors
-
-  echo "${TEXT_DIM}"
-  echo_h2 "GitOps Source" "    "
-  echo_reset_dim "GitOps URL ............................ ${COLOR_MAGENTA}https://github.com/ibm-mas/gitops"
-  echo_reset_dim "GitOps Version ........................ ${COLOR_MAGENTA}${GITOPS_VERSION}"
+  echo_reset_dim "ArgoCD Check .......................... $(echo_flag $ARGOCD_CHECK)"
+  echo_reset_dim "Use PostDelete Hooks? ................. $(echo_flag $USE_POSTDELETE_HOOKS)"
   reset_colors
 
   echo "${TEXT_DIM}"
@@ -190,6 +188,8 @@ function gitops_cis_compliance() {
   echo "- IBM Cis Compliance"
   jinja -X .+ $CLI_DIR/templates/gitops/appset-configs/cluster/cis-compliance.yaml.j2 -o ${GITOPS_CLUSTER_DIR}/cis-compliance.yaml
 
+  cat ${GITOPS_CLUSTER_DIR}/cis-compliance.yaml
+
   # Commit and push to github target repo
   # ---------------------------------------------------------------------------
   if [ "$GITHUB_PUSH" == "true" ]; then
@@ -203,8 +203,8 @@ function gitops_cis_compliance() {
       argocd_login
 
       ROOT_APP_NAME="root.${ACCOUNT_ID}"
-      CLUSTER_APP_NAME="cluster.${ACCOUNT_ID}.${REGION}.${CLUSTER_ID}"
-      CIS_COMPLIANCE_APP_NAME="cis-compliance.${ACCOUNT_ID}.${REGION}.${CLUSTER_ID}"
+      CLUSTER_APP_NAME="cluster.${ACCOUNT_ID}.${REGION_ID}.${CLUSTER_ID}"
+      CIS_COMPLIANCE_APP_NAME="cis-compliance.${ACCOUNT_ID}.${REGION_ID}.${CLUSTER_ID}"
       
       argocd_sync "${ROOT_APP_NAME}"
 

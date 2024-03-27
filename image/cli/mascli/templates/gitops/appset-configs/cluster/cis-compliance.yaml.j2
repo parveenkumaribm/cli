@@ -1,6 +1,4 @@
-merge-key: "{{ ACCOUNT_ID }}/{{ REGION }}/{{ CLUSTER_ID }}"
+merge-key: "{{ ACCOUNT_ID }}/{{ REGION_ID }}/{{ CLUSTER_ID }}"
 
 cis_compliance:
-  # no config keys actually needed for the cis-compliance chart, but we need something here
-  # for our cis-compliance-app chart to know it it ready to install
-  config: true
+  use_postdelete_hooks: {{ USE_POSTDELETE_HOOKS }}

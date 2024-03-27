@@ -510,7 +510,7 @@ function gitops_mas_config() {
   echo_reset_dim "Config Action  .......................... ${COLOR_MAGENTA}${CONFIG_ACTION}"
   echo_reset_dim "Config Type  ............................ ${COLOR_MAGENTA}${MAS_CONFIG_TYPE}"
   echo_reset_dim "Config Name  ............................ ${COLOR_MAGENTA}${MAS_CONFIG_NAME}"
-  echo_reset_dim "Use PostDelete Hooks? ................... ${COLOR_MAGENTA}${USE_POSTDELETE_HOOKS}"
+  echo_reset_dim "Use PostDelete Hooks? ................... $(echo_flag $USE_POSTDELETE_HOOKS)"
   reset_colors
 
   # Set a default commit message now we know the config name
