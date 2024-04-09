@@ -71,6 +71,18 @@ function echo_reset_dim() {
   echo "${TEXT_RESET}${TEXT_DIM}    $1"
 }
 
+# Usage example: 
+# echo_reset_dim "Use PostDelete Hooks? ................. $(echo_flag $USE_POSTDELETE_HOOKS)"
+# reset_colors
+function echo_flag() {
+  FLAG="$1"
+  if [[ $FLAG == "true" ]]; then
+    echo -n "${COLOR_GREEN}Enabled"
+  else
+    echo -n "${COLOR_RED}Disabled"
+  fi
+}
+
 function echo_hr1() {
   echo "==============================================================================="
 }
