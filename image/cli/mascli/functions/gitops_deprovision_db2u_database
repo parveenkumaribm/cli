@@ -260,12 +260,4 @@ function gitops_deprovision_db2u_database() {
     fi
 
   fi
-  # TODO - PK: Should this delete secret move to post sync ?
-  # Delete the DB2CFG_SETTINGS_APPLIED secret for the db2u-database instance
-  echo "Deleting ${DB2CFG_SETTINGS_APPLIED_SECRET} secret from AWS"
-  sm_delete_secret ${DB2CFG_SETTINGS_APPLIED_SECRET}
-
-  # Delete the DB2 config secret created by the postsync hook
-  echo "Deleting ${DB2_CONFIG_SECRET} secret from AWS"
-  sm_delete_secret ${DB2_CONFIG_SECRET}
 }
