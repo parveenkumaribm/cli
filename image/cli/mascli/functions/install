@@ -48,6 +48,33 @@ function validate_catalog_source {
   fi
 }
 
+function select_default_dev_icr() {
+  # For fyre set the default icr to be a proxy based on the fyre site
+  # for non fyre (or a fyre site other than svl or rtp) use the following defaults:
+  DEFAULT_MAS_ICR_CP=docker-na-public.artifactory.swg-devops.com/wiotp-docker-local
+  DEFAULT_MAS_ICR_CPOPEN=docker-na-public.artifactory.swg-devops.com/wiotp-docker-local/cpopen
+  if [[ "$SLS_PROMPT_ICR_CP" == "true" ]]; then
+    DEFAULT_SLS_ICR_CP=docker-na-public.artifactory.swg-devops.com/wiotp-docker-local
+  fi
+  DEFAULT_SLS_ICR_CPOPEN=docker-na-public.artifactory.swg-devops.com/wiotp-docker-local/cpopen
+
+  # if cluster type is unknown then prompt for it
+  if [[ -z "$CLUSTER_TYPE" ]]; then
+    prompt_for_input "Select Cluster Type (fyre/aws/roks)" CLUSTER_TYPE "fyre"
+  fi
+
+  if [[ "$CLUSTER_TYPE" == "fyre" ]]; then
+    if [[ -z "$FYRE_SITE" ]]; then
+      prompt_for_input "Select Fyre Site (svl/rtp)" FYRE_SITE "svl"
+    fi
+    DEFAULT_MAS_ICR_CP=na-proxy-${FYRE_SITE}.artifactory.swg-devops.com/wiotp-docker-local
+    DEFAULT_MAS_ICR_CPOPEN=na-proxy-${FYRE_SITE}.artifactory.swg-devops.com/wiotp-docker-local/cpopen
+    if [[ "$SLS_PROMPT_ICR_CP" == "true" ]]; then
+      DEFAULT_SLS_ICR_CP=na-proxy-${FYRE_SITE}.artifactory.swg-devops.com/wiotp-docker-local
+    fi
+    DEFAULT_SLS_ICR_CPOPEN=na-proxy-${FYRE_SITE}.artifactory.swg-devops.com/wiotp-docker-local/cpopen
+  fi
+}
 
 function install_noninteractive() {
   NON_INTERACTIVE=true
@@ -483,42 +510,14 @@ function install_noninteractive() {
 
   if [[ "$DEV_MODE" == "true"  ]]; then
     # Development mode
-    # For fyre set the proxy based on the fyre site
-    
-    # for non fyre (or a fyre site other than svl or rtp) use the following defaults:
-    MAS_ICR_CP=docker-na-public.artifactory.swg-devops.com/wiotp-docker-local
-    MAS_ICR_CPOPEN=docker-na-public.artifactory.swg-devops.com/wiotp-docker-local/cpopen
+    select_default_dev_icr
+
+    MAS_ICR_CP=$DEFAULT_MAS_ICR_CP
+    MAS_ICR_CPOPEN=$DEFAULT_MAS_ICR_CPOPEN
     if [[ "$SLS_PROMPT_ICR_CP" == "true" ]]; then
-      SLS_ICR_CP=docker-na-public.artifactory.swg-devops.com/wiotp-docker-local
+      SLS_ICR_CP=$DEFAULT_SLS_ICR_CP
     fi
-    SLS_ICR_CPOPEN=docker-na-public.artifactory.swg-devops.com/wiotp-docker-local/cpopen
-
-    # if cluster type is unknown then prompt for it
-    if [[ -n "$CLUSTER_TYPE" ]]; then
-      prompt_for_input "Select Cluster Type (fyre/aws/roks)" CLUSTER_TYPE "fyre"
-    fi
-
-    if [[ "$CLUSTER_TYPE" == "fyre" ]]; then
-      if [[ -n "$FYRE_SITE" ]]; then
-        prompt_for_input "Select Fyre Site (SVL/RTP)" FYRE_SITE "SVL"
-      fi
-      if [[ "$FYRE_SITE" == "SVL" ]]; then
-        MAS_ICR_CP=na-proxy-svl.artifactory.swg-devops.com/wiotp-docker-local
-        MAS_ICR_CPOPEN=na-proxy-svl.artifactory.swg-devops.com/wiotp-docker-local/cpopen
-        if [[ "$SLS_PROMPT_ICR_CP" == "true" ]]; then
-          SLS_ICR_CP=na-proxy-svl.artifactory.swg-devops.com/wiotp-docker-local
-        fi
-        SLS_ICR_CPOPEN=na-proxy-svl.artifactory.swg-devops.com/wiotp-docker-local/cpopen
-      fi
-      if [[ "$FYRE_SITE" == "RTP" ]]; then
-        MAS_ICR_CP=na-proxy-rtp.artifactory.swg-devops.com/wiotp-docker-local
-        MAS_ICR_CPOPEN=na-proxy-rtp.artifactory.swg-devops.com/wiotp-docker-local/cpopen
-        if [[ "$SLS_PROMPT_ICR_CP" == "true" ]]; then
-          SLS_ICR_CP=na-proxy-rtp.artifactory.swg-devops.com/wiotp-docker-local
-        fi
-        SLS_ICR_CPOPEN=na-proxy-rtp.artifactory.swg-devops.com/wiotp-docker-local/cpopen
-      fi
-    fi
+    SLS_ICR_CPOPEN=$DEFAULT_SLS_ICR_CPOPEN
   else
     MAS_ICR_CP=cp.icr.io/cp
     MAS_ICR_CPOPEN=icr.io/cpopen
@@ -706,15 +705,17 @@ function install_interactive() {
 
     echo
     echo_h2 "Configure IBM Container Registry (MAS)"
-    prompt_for_input "IBM Container Registry (cp)" MAS_ICR_CP docker-na-public.artifactory.swg-devops.com/wiotp-docker-local override
-    prompt_for_input "IBM Container Registry (cpopen)" MAS_ICR_CPOPEN docker-na-public.artifactory.swg-devops.com/wiotp-docker-local/cpopen override
+
+    select_default_dev_icr
+    prompt_for_input "IBM Container Registry (cp)" MAS_ICR_CP $DEFAULT_MAS_ICR_CP override
+    prompt_for_input "IBM Container Registry (cpopen)" MAS_ICR_CPOPEN $DEFAULT_MAS_ICR_CPOPEN override
 
     echo
     echo_h2 "Configure IBM Container Registry (SLS)"
     if [[ "$SLS_PROMPT_ICR_CP" == "true" ]]; then
-      prompt_for_input "IBM Container Registry (cp)" SLS_ICR_CP docker-na-public.artifactory.swg-devops.com/wiotp-docker-local override
+      prompt_for_input "IBM Container Registry (cp)" SLS_ICR_CP $DEFAULT_SLS_ICR_CP override
     fi
-    prompt_for_input "IBM Container Registry (cpopen)" SLS_ICR_CPOPEN docker-na-public.artifactory.swg-devops.com/wiotp-docker-local/cpopen override
+    prompt_for_input "IBM Container Registry (cpopen)" SLS_ICR_CPOPEN $DEFAULT_SLS_ICR_CP override
   else
     # Production Mode -- everything comes from the same registry (IBM container registry)
     echo_h2 "Configure IBM Container Registry"
