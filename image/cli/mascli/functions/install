@@ -482,12 +482,43 @@ function install_noninteractive() {
   manage_validate_internal_registry
 
   if [[ "$DEV_MODE" == "true"  ]]; then
+    # Development mode
+    # For fyre set the proxy based on the fyre site
+    
+    # for non fyre (or a fyre site other than svl or rtp) use the following defaults:
     MAS_ICR_CP=docker-na-public.artifactory.swg-devops.com/wiotp-docker-local
     MAS_ICR_CPOPEN=docker-na-public.artifactory.swg-devops.com/wiotp-docker-local/cpopen
     if [[ "$SLS_PROMPT_ICR_CP" == "true" ]]; then
       SLS_ICR_CP=docker-na-public.artifactory.swg-devops.com/wiotp-docker-local
     fi
     SLS_ICR_CPOPEN=docker-na-public.artifactory.swg-devops.com/wiotp-docker-local/cpopen
+
+    # if cluster type is unknown then prompt for it
+    if [[ -n "$CLUSTER_TYPE" ]]; then
+      prompt_for_input "Select Cluster Type (fyre/aws/roks)" CLUSTER_TYPE "fyre"
+    fi
+
+    if [[ "$CLUSTER_TYPE" == "fyre" ]]; then
+      if [[ -n "$FYRE_SITE" ]]; then
+        prompt_for_input "Select Fyre Site (SVL/RTP)" FYRE_SITE "SVL"
+      fi
+      if [[ "$FYRE_SITE" == "SVL" ]]; then
+        MAS_ICR_CP=na-proxy-svl.artifactory.swg-devops.com/wiotp-docker-local
+        MAS_ICR_CPOPEN=na-proxy-svl.artifactory.swg-devops.com/wiotp-docker-local/cpopen
+        if [[ "$SLS_PROMPT_ICR_CP" == "true" ]]; then
+          SLS_ICR_CP=na-proxy-svl.artifactory.swg-devops.com/wiotp-docker-local
+        fi
+        SLS_ICR_CPOPEN=na-proxy-svl.artifactory.swg-devops.com/wiotp-docker-local/cpopen
+      fi
+      if [[ "$FYRE_SITE" == "RTP" ]]; then
+        MAS_ICR_CP=na-proxy-rtp.artifactory.swg-devops.com/wiotp-docker-local
+        MAS_ICR_CPOPEN=na-proxy-rtp.artifactory.swg-devops.com/wiotp-docker-local/cpopen
+        if [[ "$SLS_PROMPT_ICR_CP" == "true" ]]; then
+          SLS_ICR_CP=na-proxy-rtp.artifactory.swg-devops.com/wiotp-docker-local
+        fi
+        SLS_ICR_CPOPEN=na-proxy-rtp.artifactory.swg-devops.com/wiotp-docker-local/cpopen
+      fi
+    fi
   else
     MAS_ICR_CP=cp.icr.io/cp
     MAS_ICR_CPOPEN=icr.io/cpopen
