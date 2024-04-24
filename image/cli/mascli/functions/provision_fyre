@@ -172,6 +172,7 @@ function provision_fyre() {
   if [[ $# -gt 0 ]]; then
     provision_fyre_noninteractive "$@"
   else
+    load_config
     provision_fyre_interactive
   fi
 

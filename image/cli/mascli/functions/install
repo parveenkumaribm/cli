@@ -715,7 +715,7 @@ function install_interactive() {
     if [[ "$SLS_PROMPT_ICR_CP" == "true" ]]; then
       prompt_for_input "IBM Container Registry (cp)" SLS_ICR_CP $DEFAULT_SLS_ICR_CP override
     fi
-    prompt_for_input "IBM Container Registry (cpopen)" SLS_ICR_CPOPEN $DEFAULT_SLS_ICR_CP override
+    prompt_for_input "IBM Container Registry (cpopen)" SLS_ICR_CPOPEN $DEFAULT_SLS_ICR_CPOPEN override
   else
     # Production Mode -- everything comes from the same registry (IBM container registry)
     echo_h2 "Configure IBM Container Registry"
