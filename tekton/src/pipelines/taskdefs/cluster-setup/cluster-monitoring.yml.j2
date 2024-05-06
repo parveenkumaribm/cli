@@ -35,7 +35,16 @@
       value: $(params.grafana_instance_storage_size)
     - name: grafana_major_version
       value: $(params.grafana_major_version)
+    
+    - name: skip_cluster_monitoring
+      value: $(params.skip_cluster_monitoring)      
 
   taskRef:
     kind: Task
     name: mas-devops-cluster-monitoring
+
+  when:
+    - input: "$(params.skip_cluster_monitoring)"
+      operator: notin
+      values: ["true"]
+

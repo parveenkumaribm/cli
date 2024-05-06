@@ -160,6 +160,7 @@ Usage
 - `--no-confirm`       Launch the install without prompting for confirmation
 - `--accept-license`   Accept MAS and Maximo IT (if applicable) licenses
 - `--skip-pre-check`   Skips the 'pre-install-check' task in the install pipeline
+- `--skip-cluster-monitoring` Skips the 'cluster-monitoring' task in the update pipeline
 - `-h, --help`         Show install help message
 
 Non-Interactive Install

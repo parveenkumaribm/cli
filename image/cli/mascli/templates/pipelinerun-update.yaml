@@ -19,6 +19,8 @@ spec:
       value: '$SKIP_ENTITLEMENT_KEY_FLAG'
     - name: skip_pre_check
       value: '$SKIP_PRE_CHECK'
+    - name: skip_cluster_monitoring
+      value: '$SKIP_CLUSTER_MONITORING'      
     - name: mas_catalog_version
       value: '$MAS_CATALOG_VERSION'
     - name: db2_namespace

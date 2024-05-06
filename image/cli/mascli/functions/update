@@ -26,6 +26,7 @@ Update Dependencies (Optional):
   --dro-storage-class  ${COLOR_YELLOW}DRO_STORAGE_CLASS${TEXT_RESET}  Set Custom RWO Storage Class name for DRO as part of the update
 Other Commands:
       --skip-pre-check                  Skips the 'pre-update-check' and 'post-update-verify' tasks in the update pipeline
+      --skip-cluster-monitoring         Skips the 'cluster-monitoring' task in the install pipeline      
       --no-confirm                      Launch the update without prompting for confirmation
   -h, --help                            Show this help message
 EOM
@@ -594,6 +595,9 @@ function update_noninteractive() {
       --skip-pre-check)
         SKIP_PRE_CHECK=true
         ;;
+      --skip-cluster-monitoring)
+        SKIP_CLUSTER_MONITORING=true
+        ;;        
       -h|--help)
         update_help
         ;;

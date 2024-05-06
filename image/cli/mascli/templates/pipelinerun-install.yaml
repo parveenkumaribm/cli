@@ -17,6 +17,8 @@ spec:
     # -------------------------------------------------------------------------
     - name: skip_pre_check
       value: '$SKIP_PRE_CHECK'
+    - name: skip_cluster_monitoring
+      value: '$SKIP_CLUSTER_MONITORING'
 
     # Cluster config
     # -------------------------------------------------------------------------

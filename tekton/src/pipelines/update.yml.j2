@@ -129,6 +129,12 @@ spec:
       type: string
       description: Approves the Grafana Operator upgrade to version 5
       default: ""
+    
+    # cluster monitoring
+    - name: skip_cluster_monitoring
+      type: string
+      description: Skip cluster-monitoring task
+      default: ""
 
     # cp4d update
     {{ lookup('template', params_src_dir ~ '/install-common.yml.j2') | indent(4)  }}
@@ -308,11 +314,16 @@ spec:
         - input: $(params.grafana_v5_upgrade)
           operator: in
           values: ["true", "True"]
+        - input: "$(params.skip_cluster_monitoring)"
+          operator: notin
+          values: ["true"]
       params:
         - name: cluster_monitoring_action
           value: update_grafana
         - name: devops_suite_name
           value: update-grafana
+        - name: skip_cluster_monitoring
+          value: $(params.skip_cluster_monitoring)          
       runAfter:
         - update-common-services
 

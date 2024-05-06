@@ -452,6 +452,9 @@ function install_noninteractive() {
       --skip-pre-check)
         SKIP_PRE_CHECK=true
         ;;
+      --skip-cluster-monitoring)
+        SKIP_CLUSTER_MONITORING=true
+        ;;               
       --dev-mode)
         DEV_MODE=true
         ;;

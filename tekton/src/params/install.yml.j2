@@ -325,13 +325,18 @@
   default: ""
 - name: grafana_major_version
   type: string
-  default: ""
+  default: ""  
 
-# MAS Integration - Cluster Monitoring - Open Telemetry
+# MAS Integration - Cluster Monitoring 
 # -----------------------------------------------------------------------------
 - name: cluster_monitoring_include_opentelemetry
   type: string
   default: ""
+- name: skip_cluster_monitoring
+  type: string
+  description: Skip cluster-monitoring task
+  default: ""
+
 
 # Certificate Manager
 # -----------------------------------------------------------------------------
