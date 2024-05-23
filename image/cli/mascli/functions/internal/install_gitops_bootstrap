@@ -1,0 +1,12 @@
+#!/bin/bash
+
+function install_gitops_bootstrap() {
+  if [[ "$GITOPS_MODE" == "true" ]]; then
+    echo
+    echo_h2 "Prepare Installation (Gitops)"
+    
+    echo "TODO: setup argocd etc"
+
+
+  fi
+}

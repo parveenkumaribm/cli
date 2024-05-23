@@ -1,0 +1,132 @@
+#!/bin/bash
+
+function install_gitops_sm_update_secret() {
+  echo "update secret $1 $2"
+}
+
+
+function install_gitops_clone_target_git_repo() {
+  GIT_HOST=$1
+  GIT_ORG=$2
+  GIT_REPO=$3
+  GIT_BRANCH=$4
+  GITOPS_WORKING_DIR=$5
+  GIT_SSH=$6
+  GIT_PAT=$7
+  GIT_USER_EMAIL=$8
+  echo "git: Cloning $GIT_HOST:$GIT_ORG/$GIT_REPO branch $GIT_BRANCH into $GITOPS_WORKING_DIR working directory"
+  if [ "$SSH_PATH" == "false" ]; then
+    git -C "${GITOPS_WORKING_DIR}" clone https://git:$GIT_PAT@$GIT_HOST/$GIT_ORG/$GIT_REPO.git -b $GIT_BRANCH || exit 1
+  else
+    git -C "${GITOPS_WORKING_DIR}" -c "core.sshCommand=ssh -i $GIT_SSH -F /dev/null" clone git@$GIT_HOST:$GIT_ORG/$GIT_REPO.git -b $GIT_BRANCH || exit 1
+  fi
+}
+
+
+function install_gitops() {
+  if [[ "$GITOPS_MODE" == "true" ]]; then
+
+
+    echo
+    echo_h2 "Launch Installation (Gitops)"
+
+    SM_DELIM="/"
+    AVP_TYPE=aws
+    export REGION_ID="${AWS_REGION}"
+    export CLUSTER_URL="https://kubernetes.default.svc" # only supports in-cluster argocd for now
+    export MAS_CATALOG_IMAGE="${MAS_ICR_CPOPEN}/ibm-maximo-operator-catalog"
+    export DRO_NAMESPACE="redhat-marketplace" # TODO: cli arg?
+
+    export DB2_NAMESPACE=${DB2_NAMESPACE:-"db2u"}
+
+
+    echo_h3 "Updating Secrets"
+
+    #### sm_login
+
+
+    SECRET_NAME_IBM_ENTITLEMENT=${ACCOUNT_ID}${SM_DELIM}${CLUSTER_ID}${SM_DELIM}ibm_entitlement
+    SECRET_NAME_AWS=${ACCOUNT_ID}${SM_DELIM}${CLUSTER_ID}${SM_DELIM}aws
+
+    ICR_AUTH_TOKEN=$(echo -n $ICR_USERNAME:$ICR_PASSWORD | base64 -w 0)
+    if [[ -n ${ARTIFACTORY_USERNAME} && -n ${ARTIFACTORY_TOKEN} ]]; then
+      ARTIFACTORY_AUTH_TOKEN=$(echo -n $ARTIFACTORY_USERNAME:$ARTIFACTORY_TOKEN | base64 -w 0)
+    fi
+    IBM_ENTITLEMENT_PULL_SECRET_B64=$(jinja -X .+ $CLI_DIR/templates/gitops/ibm-entitlement-with-artifactory.json.j2 | base64 -w 0)
+    IBM_ENTITLEMENT_B64=$(echo -n $ICR_PASSWORD | base64 -w 0)
+
+    install_gitops_sm_update_secret $SECRET_NAME_IBM_ENTITLEMENT "{\"image_pull_secret_b64\": \"${IBM_ENTITLEMENT_PULL_SECRET_B64}\", \"entitlement_key\": \"${IBM_ENTITLEMENT_B64}\"}"
+    install_gitops_sm_update_secret $SECRET_NAME_AWS "{\"sm_aws_access_key_id\": \"${SM_AWS_ACCESS_KEY_ID}\", \"sm_aws_secret_access_key\": \"${SM_AWS_SECRET_ACCESS_KEY}\"}"
+
+    # TODO add support for other mongodb providers in gitops-mode
+    if [ $MONGODB_PROVIDER == 'yaml' ]; then
+      export SECRET_NAME_MONGO=${ACCOUNT_ID}${SM_DELIM}${CLUSTER_ID}${SM_DELIM}mongo
+      UNESCAPED_INFO="$(cat $MONGODB_CONFIG_YAML_FILE)"
+      ESCAPED_INFO=${UNESCAPED_INFO//\"/\\\"}
+      ESCAPED_INFO=${ESCAPED_INFO//$'\n'/\\n}
+      install_gitops_sm_update_secret $SECRET_NAME_MONGO "{\"info\": \"$ESCAPED_INFO\", \"username\": \"$MONGODB_USERNAME\", \"password\": \"$MONGODB_PASSWORD\"}"
+    fi
+
+
+
+    export SECRET_NAME_LICENSE_FILE=${ACCOUNT_ID}${SM_DELIM}${CLUSTER_ID}${SM_DELIM}${MAS_INSTANCE_ID}${SM_DELIM}license
+    UNESCAPED_LICENSE="$(cat $SLS_LICENSE_FILE_LOCAL)"
+    ESCAPED_LICENSE=${UNESCAPED_LICENSE//\\/\\\\}
+    ESCAPED_LICENSE=${ESCAPED_LICENSE//\"/\\\"}
+    ESCAPED_LICENSE=${ESCAPED_LICENSE//$'\n'/\\n}
+    ESCAPED_LICENSE=${ESCAPED_LICENSE//$'\t'/\\t}
+    ESCAPED_LICENSE=${ESCAPED_LICENSE//$'\r'/''}
+    install_gitops_sm_update_secret $SECRET_NAME_LICENSE_FILE "{\"license_file\": \"$ESCAPED_LICENSE\"}"
+
+
+    echo_h3 "Updating Git"
+    
+    install_gitops_clone_target_git_repo $GIT_HOST $GIT_ORG $GIT_REPO $GIT_BRANCH $GITOPS_WORKING_DIR $GIT_SSH $GIT_PAT $GIT_USER_EMAIL
+    GIT_REPO_DIR=${GITOPS_WORKING_DIR}/${GIT_REPO}
+    git -C "${GIT_REPO_DIR}" config --local user.email "${GIT_USER_EMAIL}"
+    GIT_CLUSTER_DIR=${GIT_REPO_DIR}/${ACCOUNT_ID}/${CLUSTER_ID}
+    mkdir -p "${GIT_CLUSTER_DIR}"
+
+
+    export SECRET_KEY_IBM_ENTITLEMENT=${SECRET_NAME_IBM_ENTITLEMENT}#image_pull_secret_b64
+
+    APPSET_CONFIGS_DIR="${CLI_DIR}/templates/gitops/appset-configs"
+    jinja \
+      -X .+ \
+      ${APPSET_CONFIGS_DIR}/cluster/phase1/ibm-mas-cluster-base.yaml.j2 \
+      -o ${GIT_CLUSTER_DIR}/ibm-mas-cluster-base.yaml
+
+    jinja \
+      -X .+ \
+      ${APPSET_CONFIGS_DIR}/cluster/phase1/ibm-operator-catalog.yaml.j2 \
+      -o ${GIT_CLUSTER_DIR}/ibm-operator-catalog.yaml
+
+    jinja \
+      -X .+ \
+      ${APPSET_CONFIGS_DIR}/cluster/phase1/redhat-cert-manager.yaml.j2 \
+      -o ${GIT_CLUSTER_DIR}/redhat-cert-manager.yaml
+
+    if [[ "$UDS_ACTION" != "install-dro" ]]; then
+      jinja -X .+ \
+        ${APPSET_CONFIGS_DIR}/cluster/ibm-dro.yaml.j2 \
+        -o ${GIT_CLUSTER_DIR}/ibm-dro.yaml
+    fi
+
+    # Are we going to install any DB2 databases? If so, we need the db2u operator
+    if [[ "$DB2_ACTION_SYSTEM" == "install" || "$DB2_ACTION_MANAGE" == "install" ]]; then
+      if [[ -z "${DB2_CHANNEL}" ]]; then
+        echo "DB2_CHANNEL not specified, fetching from secrets manager"
+        export SECRET_KEY_DB2_DEFAULT_CHANNEL=${ACCOUNT_ID}${SM_DELIM}${CLUSTER_ID}${SM_DELIM}db2_default_channel#db2_default_channel
+      fi
+
+      jinja -X .+ \
+        ${APPSET_CONFIGS_DIR}/cluster/ibm-db2u.yaml.j2 \
+        -o ${GIT_CLUSTER_DIR}/ibm-db2u.yaml
+    fi
+
+
+
+  
+
+  fi
+}

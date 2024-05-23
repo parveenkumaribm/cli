@@ -18,6 +18,9 @@
 . $CLI_DIR/functions/internal/install_pipelinerun_preview
 . $CLI_DIR/functions/internal/install_pipelinerun_create
 
+. $CLI_DIR/functions/internal/install_gitops_bootstrap
+. $CLI_DIR/functions/internal/install_gitops
+
 . $CLI_DIR/functions/help/install_help
 
 
@@ -448,6 +451,61 @@ function install_noninteractive() {
         export VPC_ID=$1 && shift
         ;;
 
+      # Gitops
+      --gitops-mode)
+        export GITOPS_MODE="true"
+        ;;
+      --cluster-id)
+        export CLUSTER_ID=$1 && shift
+        ;;
+      --account-id)
+        export ACCOUNT_ID=$1 && shift
+        ;;
+      --git-push)
+        export GIT_PUSH=true
+        ;;
+      --git-host)
+        export GIT_HOST=$1 && shift
+        ;;
+      --git-org)
+        export GIT_ORG=$1 && shift
+        ;;
+      --git-repo)
+        export GIT_REPO=$1 && shift
+        ;;
+      --git-branch)
+        export GIT_BRANCH=$1 && shift
+        ;;
+      --git-pat)
+        export GIT_PAT=$1 && shift
+        export GIT_SSH="false"
+        ;;
+      --git-ssh)
+        export GIT_SSH=$1 && shift
+        ;;
+      --git-user-email)
+        export GIT_USER_EMAIL=$1 && shift
+        ;;
+      --aws-sm-secrets-path)
+        export SECRETS_PATH=$1 && shift
+        ;;
+      --mongodb-provider)
+        # TODO: reject this param unless we're in gitops mode
+        export MONGODB_PROVIDER=$1 && shift
+        ;;
+      --mongodb-config-yaml-file)
+        # TODO: reject this param unless we're in gitops mode
+        export MONGODB_CONFIG_YAML_FILE=$1 && shift
+        ;;
+      --mongodb-username)
+        # TODO: reject this param unless we're in gitops mode
+        export MONGODB_USERNAME=$1 && shift
+        ;;
+      --mongodb-password)
+        # TODO: reject this param unless we're in gitops mode
+        export MONGODB_PASSWORD=$1 && shift
+        ;;
+
       # Other Commands
       --skip-pre-check)
         SKIP_PRE_CHECK=true
@@ -513,6 +571,7 @@ function install_noninteractive() {
   else
     export SLS_ENTITLEMENT_FILE="/workspace/entitlement/$(basename $SLS_LICENSE_FILE_LOCAL)"
   fi
+  
 }
 
 
@@ -744,6 +803,9 @@ function install() {
       --dev-mode)
         DEV_MODE=true
         ;;
+      --gitops-mode)
+        GITOPS_MODE=true
+        ;;
       --skip-grafana-install)
         GRAFANA_ACTION="none"
         ;;
@@ -764,7 +826,12 @@ function install() {
     fi
   fi
 
+
   if [[ "$INTERACTIVE_MODE" == "true" ]]; then
+    if [[ "$GITOPS_MODE" == "true" ]]; then
+      echo_warning "Interactive mode is not supported at present when --gitops-mode is specified"
+      exit 1
+    fi
     load_config
     connect
     ocp_version_check
@@ -778,7 +845,9 @@ function install() {
     detect_airgap
     detect_sno
     install_noninteractive "$@"
-    pipelines_install_operator
+    if [[ "$GITOPS_MODE" != "true" ]]; then
+      pipelines_install_operator
+    fi
     install_config_additional_configs
   fi
 
@@ -786,8 +855,32 @@ function install() {
   # DRO is installed by default on latest catalog version, for catalogs older than 240227 install UDS
   uds_action_selection
 
-  # Prepare and launch the Tekton pipeline
-  install_pipelinerun_prepare
-  install_pipelinerun_preview
-  install_pipelinerun_create
+  if [[ "$GITOPS_MODE" == "true" ]]; then
+    GITOPS_WORKING_DIR="$HOME/.ibm-mas/gitops"
+    mkdir -p "${GITOPS_WORKING_DIR}"
+
+    [[ -z "$ACCOUNT_ID" ]] && install_help "ACCOUNT_ID is not set"
+    [[ -z "$CLUSTER_ID" ]] && install_help "CLUSTER_ID is not set"
+    [[ -z "$SECRETS_PATH" ]] && install_help "SECRETS_PATH is not set"
+    [[ -z "$MONGODB_CONFIG_YAML_FILE" ]] && install_help "MONGODB_CONFIG_YAML_FILE is not set"
+    [[ -z "$MONGODB_USERNAME" ]] && install_help "MONGODB_USERNAME is not set"
+    [[ -z "$MONGODB_PASSWORD" ]] && install_help "MONGODB_PASSWORD is not set"
+    # TODO: add support for installing in-cluster/docdb mongodb via gitops
+
+    if [[ "$UDS_ACTION" != "install-dro" ]]; then
+      # TODO: check MAS catalog version dates up front?
+      # TODO: document this restriction
+      # TODO: or, add gitops support for UDS
+      echo_warning "MAS Catalog Version ${MAS_CATALOG_VERSION} requires UDS, but only DRO is supported at present in gitops mode. Please choose a MAS catalog version date of 240227 or later"
+      exit 1
+    fi
+
+    install_gitops_bootstrap
+    install_gitops
+  else
+    # Prepare and launch the Tekton pipeline
+    install_pipelinerun_prepare
+    install_pipelinerun_preview
+    install_pipelinerun_create
+  fi
 }
