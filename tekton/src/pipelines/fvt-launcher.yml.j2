@@ -742,6 +742,84 @@ spec:
         - launchfvt-visualinspection
 
 
+    # 2. Application FVT - Health
+    # -------------------------------------------------------------------------
+    - name: waitfor-health
+      taskRef:
+        kind: Task
+        name: mas-devops-wait-for-configmap
+      params:
+        - name: image_pull_policy
+          value: $(params.image_pull_policy)
+        - name: namespace
+          value: $(context.taskRun.namespace)
+        - name: configmap_name
+          value: approval-app-cfg-health
+        - name: configmap_key
+          value: FVT_STATUS
+        - name: configmap_target_value
+          value: pending
+        # Escape route
+        - name: escape_configmap_name
+          value: sync-install
+        - name: escape_configmap_key
+          value: INSTALL_STATUS
+        # 40 retries at 5 minute intervals = 3 hours
+        - name: delay
+          value: "300"
+        - name: max_retries
+          value: "40"
+        - name: ignore_failure
+          value: "False"
+      when:
+        - input: $(params.launchfvt_health)
+          operator: in
+          values: ["true", "True"]
+        - input: $(params.sync_with_install)
+          operator: in
+          values: ["true", "True"]
+      runAfter:
+        - approval-suite-verify
+
+    - name: launchfvt-health
+      params:
+        - name: image_pull_policy
+          value: $(params.image_pull_policy)
+        - name: pipelinerun_name
+          value: "$(params.mas_instance_id)-fvt-health"
+      taskRef:
+        kind: Task
+        name: mas-launchfvt-health
+      when:
+        - input: $(params.launchfvt_health)
+          operator: in
+          values: ["true", "True"]
+      runAfter:
+        - waitfor-health
+
+    - name: approval-health
+      taskRef:
+        kind: Task
+        name: mas-devops-update-configmap
+      params:
+        - name: image_pull_policy
+          value: $(params.image_pull_policy)
+        - name: configmap_name
+          value: approval-app-cfg-health
+        - name: configmap_key
+          value: FVT_STATUS
+        - name: configmap_value
+          value: approved
+      when:
+        - input: $(params.launchfvt_health)
+          operator: in
+          values: ["true", "True"]
+        - input: $(params.sync_with_install)
+          operator: in
+          values: ["true", "True"]
+      runAfter:
+        - launchfvt-health
+
   finally:
     # Collect must-gather
     # -------------------------------------------------------------------------

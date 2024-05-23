@@ -42,7 +42,7 @@
           - "fvt_blacklist ................... {{ fvt_blacklist }}"
           - "fvt_whitelist ................... {{ fvt_whitelist }}"
 
-    - name: "Start fvt-manage pipeline"
+    - name: "Start fvt-health pipeline"
       kubernetes.core.k8s:
         apply: true
         template: templates/mas-fvt-health.yml.j2

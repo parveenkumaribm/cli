@@ -5,10 +5,10 @@ metadata:
   name: "{{ pipelinerun_name }}"
   namespace: "{{ pipelinerun_namespace }}"
   labels:
-    tekton.dev/pipeline: mas-fvt-manage-health
+    tekton.dev/pipeline: mas-fvt-health
 spec:
   pipelineRef:
-    name: mas-fvt-manage-health
+    name: mas-fvt-health
 
   serviceAccountName: pipeline
   timeouts:
@@ -22,9 +22,11 @@ spec:
     # Registry
     - name: fvt_image_registry
       value: "{{ fvt_image_registry }}"
+    - name: fvt_artifactory_username
+      value: "{{ fvt_artifactory_username }}"
     - name: fvt_artifactory_token
       value: "{{ fvt_artifactory_token }}"
-
+      
     # MAS Info
     - name: mas_app_channel_manage
       value: "{{ mas_app_channel_manage }}"
@@ -34,10 +36,12 @@ spec:
       value: "{{ mas_workspace_id }}"
 
     # Digests
-    - name: fvt_digest_mobile_testng
-      value: "{{ fvt_digest_mobile_testng }}"
-    - name: fvt_digest_manage_civil_selenium
-      value: "{{ fvt_digest_manage_civil_selenium }}"
+    - name: fvt_digest_health_preparedata
+      value: "{{ fvt_digest_health_preparedata }}"
+    - name: fvt_digest_health_python
+      value: "{{ fvt_digest_health_python }}"
+    - name: fvt_digest_health_testng
+      value: "{{ fvt_digest_health_testng }}"
 
   workspaces:
     # The generated configuration files
