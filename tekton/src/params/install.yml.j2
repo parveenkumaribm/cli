@@ -555,6 +555,14 @@
   type: string
   description: Set true if you want to configure JMS queues. It is false by default.
   default: "" # default is handled by ansible-devops
+- name: managews_cfg_delay
+  type: string
+  description: Set time to delay next check for configuration
+  default: "" # default is handled by ansible-devops
+- name: managews_cfg_retries
+  type: string
+  description: Set total number of retries to check for configuration
+  default: "" # default is handled by ansible-devops
 
 # MAS Application Configuration - Health Application
 - name: mas_appws_bindings_health_wsl_flag
