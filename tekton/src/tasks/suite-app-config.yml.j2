@@ -145,6 +145,14 @@ spec:
       type: string
       description: Set true if you want to configure JMS queues. It is false by default.
       default: "" # default is handled by ansible-devops
+    - name: mas_app_cfg_delay
+      type: string
+      description: Set time to delay next check mas app configuration
+      default: "" # default is handled by ansible-devops
+    - name: mas_app_cfg_retries
+      type: string
+      description: Set total number of retries to check mas app configuration
+      default: "" # default is handled by ansible-devops
 
     # Application Workspace - Operand (Predict)
     - name: predict_deployment_size
