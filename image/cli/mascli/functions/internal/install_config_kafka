@@ -3,6 +3,8 @@
 # Do we need to set up an IoT kafka?
 # -------------------------------------------------------------------------
 function kafka_for_iot() {
+  # TODO:  iot not suported in gitops-mode at present
+
   if [ "$MAS_APP_CHANNEL_IOT" != "" ]; then
     # Set up system kafka - using providers or external source
     echo_h3 "Kafka configuration for Maximo IoT"
@@ -10,6 +12,9 @@ function kafka_for_iot() {
     echo " - Supported Kafka providers: Strimzi, Red Hat AMQ Streams, IBM Cloud Event Streams and AWS MSK."
     echo ""
     reset_colors
+
+
+    # TODO: only byo kafka supported in gitops-mode at present
 
     if prompt_for_confirm_default_yes "Create system Kafka instance using one of the supported providers?"; then
       KAFKA_ACTION_SYSTEM=install

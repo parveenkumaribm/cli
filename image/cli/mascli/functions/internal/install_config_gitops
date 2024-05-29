@@ -1,0 +1,34 @@
+#!/bin/bash
+
+function install_config_gitops() {
+  if [[ "$GITOPS_MODE" == "true" ]]; then
+    reset_colors
+    prompt_for_input "Account ID" ACCOUNT_ID
+    prompt_for_input "Cluster ID" CLUSTER_ID
+    prompt_for_input "SM_AWS_REGION" SM_AWS_REGION
+    prompt_for_secret "SM_AWS_SECRET_ACCESS_KEY" SM_AWS_SECRET_ACCESS_KEY "Re-use saved ...?"
+    prompt_for_secret "SM_AWS_ACCESS_KEY_ID" SM_AWS_ACCESS_KEY_ID "Re-use saved ...?"
+
+    # TODO : add option to infer this from AWS Region/Account ID?
+    # (arn:aws:secretsmanager:${SM_AWS_REGION}:${AWS_ACCOUNT_ID}:secret)
+    prompt_for_input "SM_AWS_SECRETS_PATH" SM_AWS_SECRETS_PATH
+
+    prompt_for_confirm "Install ArgoCD?" GITOPS_INSTALL_ARGOCD
+
+    prompt_for_input "GITOPS_VERSION" GITOPS_VERSION
+    prompt_for_input "GITHUB_HOST" GITHUB_HOST
+    prompt_for_input "GITHUB_ORG" GITHUB_ORG
+    prompt_for_input "GITHUB_REPO" GITHUB_REPO
+    prompt_for_input "GIT_BRANCH" GIT_BRANCH
+    prompt_for_input "Git SSH key path" GIT_SSH
+
+    # TODO: OK to save secrets to ~/.ibm-mas/cli.env?
+    if [[ -z "${GIT_SSH}" ]]; then
+      prompt_for_secret "GITHUB_PAT" GITHUB_PAT "Re-use saved GITHUB_PAT?"
+    fi
+
+    prompt_for_input "GITHUB_USER_EMAIL" GITHUB_USER_EMAIL
+    
+
+  fi
+}

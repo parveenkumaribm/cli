@@ -1,6 +1,7 @@
 #!/bin/bash
 
 function install_gitops_sm_update_secret() {
+  echo
   echo "update secret $1 $2"
 }
 
@@ -23,6 +24,41 @@ function install_gitops_clone_target_git_repo() {
 }
 
 
+
+function secret_mongo() {
+    # TODO add support for other mongodb providers in gitops-mode
+
+    local UNESCAPED_INFO="$(cat $MONGODB_CONFIG_YAML_FILE)"
+    local ESCAPED_INFO=${UNESCAPED_INFO//\"/\\\"}
+    local ESCAPED_INFO=${ESCAPED_INFO//$'\n'/\\n}
+
+    # TODO: do we even need the cluster-level mongo secret?
+    # this is just how gitops-mongo shares the config for the docdb instance it has setup
+    # but since we're only supporting yaml at the moment, we can just create the instance secrets directly
+    # Remember though the postsync hooks in syncjobs that create the mongo instance-level users for you do require creds for an admin user
+    # local SECRET_NAME_MONGO_CLUSTER=${ACCOUNT_ID}${SM_DELIM}${CLUSTER_ID}${SM_DELIM}mongo
+    # install_gitops_sm_update_secret $SECRET_NAME_MONGO_CLUSTER "{\"info\": \"$ESCAPED_INFO\", \"username\": \"$MONGO_USERNAME\", \"password\": \"$MONGO_PASSWORD\"}"
+
+
+    local SECRET_NAME_MONGO_INSTANCE=${ACCOUNT_ID}${SM_DELIM}${CLUSTER_ID}${SM_DELIM}${MAS_INSTANCE_ID}${SM_DELIM}mongo
+    install_gitops_sm_update_secret $SECRET_NAME_MONGO_INSTANCE "{\"info\": \"$ESCAPED_INFO\", \"username\": \"$MONGO_USERNAME\", \"password\": \"$MONGO_PASSWORD\"}"
+}
+
+
+function secret_license() {
+  local SECRET_NAME_LICENSE_FILE=${ACCOUNT_ID}${SM_DELIM}${CLUSTER_ID}${SM_DELIM}${MAS_INSTANCE_ID}${SM_DELIM}license
+  local UNESCAPED_LICENSE="$(cat $SLS_LICENSE_FILE_LOCAL)"
+  local ESCAPED_LICENSE=${UNESCAPED_LICENSE//\\/\\\\}
+  local ESCAPED_LICENSE=${ESCAPED_LICENSE//\"/\\\"}
+  local ESCAPED_LICENSE=${ESCAPED_LICENSE//$'\n'/\\n}
+  local ESCAPED_LICENSE=${ESCAPED_LICENSE//$'\t'/\\t}
+  local ESCAPED_LICENSE=${ESCAPED_LICENSE//$'\r'/''}
+  install_gitops_sm_update_secret $SECRET_NAME_LICENSE_FILE "{\"license_file\": \"$ESCAPED_LICENSE\"}"
+}
+
+
+
+
 function install_gitops() {
   if [[ "$GITOPS_MODE" == "true" ]]; then
 
@@ -30,7 +66,7 @@ function install_gitops() {
     echo
     echo_h2 "Launch Installation (Gitops)"
 
-    SM_DELIM="/"
+    export SM_DELIM="/"
     AVP_TYPE=aws
     export REGION_ID="${AWS_REGION}"
     export CLUSTER_URL="https://kubernetes.default.svc" # only supports in-cluster argocd for now
@@ -46,8 +82,6 @@ function install_gitops() {
 
 
     SECRET_NAME_IBM_ENTITLEMENT=${ACCOUNT_ID}${SM_DELIM}${CLUSTER_ID}${SM_DELIM}ibm_entitlement
-    SECRET_NAME_AWS=${ACCOUNT_ID}${SM_DELIM}${CLUSTER_ID}${SM_DELIM}aws
-
     ICR_AUTH_TOKEN=$(echo -n $ICR_USERNAME:$ICR_PASSWORD | base64 -w 0)
     if [[ -n ${ARTIFACTORY_USERNAME} && -n ${ARTIFACTORY_TOKEN} ]]; then
       ARTIFACTORY_AUTH_TOKEN=$(echo -n $ARTIFACTORY_USERNAME:$ARTIFACTORY_TOKEN | base64 -w 0)
@@ -56,27 +90,18 @@ function install_gitops() {
     IBM_ENTITLEMENT_B64=$(echo -n $ICR_PASSWORD | base64 -w 0)
 
     install_gitops_sm_update_secret $SECRET_NAME_IBM_ENTITLEMENT "{\"image_pull_secret_b64\": \"${IBM_ENTITLEMENT_PULL_SECRET_B64}\", \"entitlement_key\": \"${IBM_ENTITLEMENT_B64}\"}"
+
+
+
+    SECRET_NAME_AWS=${ACCOUNT_ID}${SM_DELIM}${CLUSTER_ID}${SM_DELIM}aws
     install_gitops_sm_update_secret $SECRET_NAME_AWS "{\"sm_aws_access_key_id\": \"${SM_AWS_ACCESS_KEY_ID}\", \"sm_aws_secret_access_key\": \"${SM_AWS_SECRET_ACCESS_KEY}\"}"
 
-    # TODO add support for other mongodb providers in gitops-mode
-    if [ $MONGODB_PROVIDER == 'yaml' ]; then
-      export SECRET_NAME_MONGO=${ACCOUNT_ID}${SM_DELIM}${CLUSTER_ID}${SM_DELIM}mongo
-      UNESCAPED_INFO="$(cat $MONGODB_CONFIG_YAML_FILE)"
-      ESCAPED_INFO=${UNESCAPED_INFO//\"/\\\"}
-      ESCAPED_INFO=${ESCAPED_INFO//$'\n'/\\n}
-      install_gitops_sm_update_secret $SECRET_NAME_MONGO "{\"info\": \"$ESCAPED_INFO\", \"username\": \"$MONGODB_USERNAME\", \"password\": \"$MONGODB_PASSWORD\"}"
-    fi
 
+    # creates the instance-level mongo creds only for now
+    secret_mongo
 
+    secret_license
 
-    export SECRET_NAME_LICENSE_FILE=${ACCOUNT_ID}${SM_DELIM}${CLUSTER_ID}${SM_DELIM}${MAS_INSTANCE_ID}${SM_DELIM}license
-    UNESCAPED_LICENSE="$(cat $SLS_LICENSE_FILE_LOCAL)"
-    ESCAPED_LICENSE=${UNESCAPED_LICENSE//\\/\\\\}
-    ESCAPED_LICENSE=${ESCAPED_LICENSE//\"/\\\"}
-    ESCAPED_LICENSE=${ESCAPED_LICENSE//$'\n'/\\n}
-    ESCAPED_LICENSE=${ESCAPED_LICENSE//$'\t'/\\t}
-    ESCAPED_LICENSE=${ESCAPED_LICENSE//$'\r'/''}
-    install_gitops_sm_update_secret $SECRET_NAME_LICENSE_FILE "{\"license_file\": \"$ESCAPED_LICENSE\"}"
 
 
     echo_h3 "Updating Git"
@@ -86,9 +111,13 @@ function install_gitops() {
     git -C "${GIT_REPO_DIR}" config --local user.email "${GIT_USER_EMAIL}"
     GIT_CLUSTER_DIR=${GIT_REPO_DIR}/${ACCOUNT_ID}/${CLUSTER_ID}
     mkdir -p "${GIT_CLUSTER_DIR}"
+    GIT_INSTANCE_DIR=${GIT_REPO_DIR}/${ACCOUNT_ID}/${CLUSTER_ID}/${MAS_INSTANCE_ID}
+    mkdir -p "${GIT_INSTANCE_DIR}"
 
 
     export SECRET_KEY_IBM_ENTITLEMENT=${SECRET_NAME_IBM_ENTITLEMENT}#image_pull_secret_b64
+    export SECRET_KEY_AWS_ACCESS_KEY_ID=${SECRET_NAME_AWS_ACCESS}#sm_aws_access_key_id
+    export SECRET_KEY_AWS_SECRET_ACCESS_KEY=${SECRET_NAME_AWS_ACCESS}#sm_aws_secret_access_key
 
     APPSET_CONFIGS_DIR="${CLI_DIR}/templates/gitops/appset-configs"
     jinja \
@@ -125,8 +154,27 @@ function install_gitops() {
     fi
 
 
+    echo "- Base Config"
+    jinja \
+      -X .+ \
+      ${APPSET_CONFIGS_DIR}/cluster/instance/ibm-mas-instance-base.yaml.j2 \
+      -o ${GIT_INSTANCE_DIR}/ibm-mas-instance-base.yaml
 
-  
+    echo "- IBM Suite License Service"
+    jinja \
+      -X .+ \
+      -u strict \
+      -d $MONGODB_CONFIG_YAML_FILE \
+      ${APPSET_CONFIGS_DIR}/cluster/instance/ibm-sls.yaml.j2 \
+      -o ${GIT_INSTANCE_DIR}/ibm-sls.yaml
+
+    echo "- IBM Maximo Application Suite Core Platform"
+    jinja \
+      -X .+ \
+      ${APPSET_CONFIGS_DIR}/cluster/instance/ibm-mas-suite.yaml.j2 \
+      -o ${GIT_INSTANCE_DIR}/ibm-mas-suite.yaml
+
+    
 
   fi
 }

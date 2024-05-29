@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+
+# TODO: Can we delete this? I think it has been replaced by instance-applications/130-ibm-mas-suite/templates/01-ibm-mas_suite_dns_role_presync_Job.yaml
+
 function gitops_suite_dns_help() {
   [[ -n "$1" ]] && echo_warning "$1"
   reset_colors
