@@ -340,6 +340,10 @@ spec:
         - turbonomic
         - cognos
 
+    # 14 Configure IBM Maximo AI Broker
+    {{ lookup('template', 'taskdefs/dependencies/aibroker.yml.j2') | indent(4) }}
+      runAfter:
+        - suite-verify
 
   finally:
     # Update synchronization configmap

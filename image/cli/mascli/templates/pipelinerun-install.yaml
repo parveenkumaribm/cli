@@ -455,6 +455,13 @@ spec:
     - name: mas_app_settings_default_jms
       value: '$MAS_APP_SETTINGS_DEFAULT_JMS'
 
+    # IBM Maximo AIBROKER
+    # -------------------------------------------------------------------------
+    - name: mas_aibroker_channel
+      value: '$MAS_AIBROKER_CHANNEL'
+    - name: install_aibroker
+      value: '$INSTALL_AIBROKER'
+
     # Monitor Application
     # -------------------------------------------------------------------------
     - name: mas_app_channel_monitor

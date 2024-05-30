@@ -575,3 +575,14 @@
   type: string
   description: controls the workload size of predict containers
   default: "small"
+
+# MAS Application Configuration - IBM Maximo AI Broker
+# -----------------------------------------------------------------------------
+- name: install_aibroker
+  type: string
+  description: Flag to control whether to install IBM Maximo AI Broker
+  default: ""
+- name: mas_aibroker_channel
+  type: string
+  description: Default channel for IBM Maximo AI Broker
+  default: "" # default is handled by ansible-devops
