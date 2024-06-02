@@ -148,8 +148,12 @@ if [ "$MODE" == "backup" ]; then
     OPERATOR_GROUP_NEW=$(echo "$OPERATOR_GROUP" | sed -E 's/.*\/(.+)/\1/')
     backupSingleResource OperatorGroup $OPERATOR_GROUP_NEW $MAS_MANAGE_NAMESPACE
     backupSingleResource Secret ibm-entitlement $MAS_MANAGE_NAMESPACE
-    backupSingleResource Secret $MAS_WORKSPACE_ID-manage-encryptionsecret $MAS_MANAGE_NAMESPACE
-    backupSingleResource Secret $MAS_WORKSPACE_ID-manage-encryptionsecret-operator $MAS_MANAGE_NAMESPACE
+    if oc get secret $MAS_WORKSPACE_ID-manage-encryptionsecret -n $namespace &> /dev/null; then
+    	backupSingleResource Secret $MAS_WORKSPACE_ID-manage-encryptionsecret $MAS_MANAGE_NAMESPACE
+    fi
+    if oc get secret $MAS_WORKSPACE_ID-manage-encryptionsecret-operator -n $namespace &> /dev/null; then
+    	backupSingleResource Secret $MAS_WORKSPACE_ID-manage-encryptionsecret-operator $MAS_MANAGE_NAMESPACE
+    fi 
     backupSingleResource ManageApp $MAS_INSTANCE_ID $MAS_MANAGE_NAMESPACE
     backupResources ManageWorkspace $MAS_MANAGE_NAMESPACE
     backupResources jdbccfgs $MAS_CORE_NAMESPACE 
