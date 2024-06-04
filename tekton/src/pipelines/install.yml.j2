@@ -343,7 +343,7 @@ spec:
     # 14 Configure Open Datahub
     {{ lookup('template', 'taskdefs/dependencies/odh.yml.j2') | indent(4) }}
       runAfter:
-        - suite-verify
+        - cert-manager
     
     # 15 Configure Kmodels
     {{ lookup('template', 'taskdefs/dependencies/kmodels.yml.j2') | indent(4) }}
