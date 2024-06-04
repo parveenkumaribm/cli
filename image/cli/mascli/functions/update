@@ -138,7 +138,8 @@ function validate_existing_mongo() {
       if [ ! "$(printf '%s\n' "$MONGODB_CURRENT_VERSION" "$MONGODB_TARGET_VERSION" | sort -V | head -n1)" = "$MONGODB_CURRENT_VERSION" ]; then
           echo
           echo -e "${COLOR_RED}MongoDB Community Edition is currently running version '${MONGODB_CURRENT_VERSION}' and cannot be downgraded to target version '${MONGODB_TARGET_VERSION}' defined for the '$MAS_CATALOG_VERSION' catalog update"
-          exit 1
+          echo -e "${COLOR_RED}MongoDB Community Edition version will remain at '${MONGODB_CURRENT_VERSION}'."
+         MONGODB_VERSION=$MONGODB_CURRENT_VERSION
       fi
     fi
   fi
@@ -771,7 +772,11 @@ function update() {
 
   # MongoDB Community Edition
   if [ "$MONGODB_NAMESPACE" != "" ]; then
-    echo_reset_dim "MongoDb Community Edition .................. ${COLOR_GREEN}$MONGODB_NAMESPACE (${MONGODB_CURRENT_VERSION} to ${MONGODB_TARGET_VERSION})"
+    if [ "$MONGODB_CURRENT_VERSION" != "$MONGODB_TARGET_VERSION" ]; then
+      echo_reset_dim "MongoDb Community Edition .................. ${COLOR_GREEN}$MONGODB_NAMESPACE (${MONGODB_CURRENT_VERSION} to ${MONGODB_TARGET_VERSION})"
+    else
+      echo_reset_dim "MongoDb Community Edition .................. ${COLOR_RED}No${TEXT_RESET}"
+    fi
   else
     echo_reset_dim "MongoDb Community Edition .................. ${COLOR_RED}Not found in target cluster"
   fi
