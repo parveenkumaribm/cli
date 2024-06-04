@@ -340,10 +340,20 @@ spec:
         - turbonomic
         - cognos
 
-    # 14 Configure IBM Maximo AI Broker
-    {{ lookup('template', 'taskdefs/dependencies/aibroker.yml.j2') | indent(4) }}
+    # 14 Configure Open Datahub
+    {{ lookup('template', 'taskdefs/dependencies/odh.yml.j2') | indent(4) }}
       runAfter:
         - suite-verify
+    
+    # 15 Configure Kmodels
+    {{ lookup('template', 'taskdefs/dependencies/kmodels.yml.j2') | indent(4) }}
+      runAfter:
+        - odh
+
+    # 16 Configure IBM Maximo AI Broker
+    {{ lookup('template', 'taskdefs/dependencies/aibroker.yml.j2') | indent(4) }}
+      runAfter:
+        - kmodels
 
   finally:
     # Update synchronization configmap

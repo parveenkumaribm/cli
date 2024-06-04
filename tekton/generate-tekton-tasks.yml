@@ -23,6 +23,8 @@
         dest: "{{ task_target_dir }}/{{ item }}.yaml"
       with_items:
         - aibroker
+        - odh
+        - kmodels
         - appconnect
         - cert-manager
         - common-services

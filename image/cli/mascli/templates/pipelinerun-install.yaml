@@ -462,6 +462,33 @@ spec:
     - name: install_aibroker
       value: '$INSTALL_AIBROKER'
 
+    # IBM Maximo AIBROKER dependencies
+    # -------------------------------------------------------------------------
+    - name: storage_accesskey
+      value: '$STORAGE_ACCESSKEY'
+    - name: storage_secretkey
+      value: '$STORAGE_SECRETKEY'
+    - name: storage_host
+      value: '$STORAGE_HOST'
+    - name: storage_region
+      value: '$STORAGE_REGION'
+    - name: storage_provider
+      value: '$STORAGE_PROVIDER'
+    - name: storage_pipelines_bucket
+      value: '$STORAGE_PIPELINES_BUCKET'
+    - name: storage_tenants_bucket
+      value: '$STORAGE_TENANTS_BUCKET'
+    - name: tenant_name
+      value: '$TENANT_NAME'
+    - name: app_domain
+      value: '$APP_DOMAIN'
+    - name: watsonxai_apikey
+      value: '$WATSONXAI_APIKEY'
+    - name: watsonxai_url
+      value: '$WATSONXAI_URL'
+    - name: watsonxai_project_id
+      value: '$WATSONXAI_PROJECT_ID'
+
     # Monitor Application
     # -------------------------------------------------------------------------
     - name: mas_app_channel_monitor

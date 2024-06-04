@@ -2,7 +2,7 @@
   params:
     {{ lookup('template', 'taskdefs/common/cli-params.yml.j2') | indent(4) }}
     - name: devops_suite_name
-      value: aibroker
+      value: kmodels
 
     - name: mas_instance_id
       value: $(params.mas_instance_id)
@@ -23,7 +23,7 @@
     - name: install_aibroker
       value: $(params.install_aibroker)
   taskRef:
-    name: mas-devops-aibroker
+    name: kmodels
     kind: Task
   when:
     - input: "$(params.install_aibroker)"
