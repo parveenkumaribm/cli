@@ -594,7 +594,7 @@ function install_interactive() {
   echo " - Must start with a lowercase letter"
   reset_colors
   prompt_for_input "MAS Workspace ID" MAS_WORKSPACE_ID
-  if [[ ! "${MAS_WORKSPACE_ID}" =~ ^[a-z][a-z0-9]{2,11}$ ]]; then
+  if [[ ! "${MAS_WORKSPACE_ID}" =~ ^([a-z][a-z0-9]{2,11})(;[a-z][a-z0-9]{2,11})*$ ]]; then
     echo_warning "Workspace ID (${MAS_WORKSPACE_ID}) does not meet requirements"
     exit 1
   fi
