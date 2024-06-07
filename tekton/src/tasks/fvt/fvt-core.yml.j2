@@ -55,7 +55,7 @@ spec:
       - name: INSTANCE_ID
         value: "$(params.mas_instance_id)"
       - name: WORKSPACE_ID
-        value: "$(params.mas_workspace_id)"
+        value: "$(params.mas_workspace_id).split(";")[0]"
 
       # Enable results to be saved
       - name: DEVOPS_MONGO_URI
