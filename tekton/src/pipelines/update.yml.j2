@@ -128,6 +128,9 @@ spec:
       default: "install-dro"
       type: string
       description: set UDS_ACTION, default is install-dro'
+    - name: dro_namespace
+      default: "redhat-marketplace"
+      type: string
 
     # grafana operator update
     - name: grafana_v5_upgrade
@@ -378,6 +381,8 @@ spec:
           value: $(params.uds_storage_class)
         - name: uds_action
           value: $(params.uds_action)
+        - name: DRO_NAMESPACE
+          value: $(params.dro_namespace)
         - name: devops_suite_name
           value: update-uds
 {% if wait_for_install == true %}
@@ -448,16 +453,7 @@ spec:
   finally:
     # Collect must-gather
     # -------------------------------------------------------------------------
-    - name: must-gather
-      taskRef:
-        kind: Task
-        name: mas-devops-must-gather
-      params:
-        - name: base_output_dir
-          value: "/workspace/mustgather/$(context.pipelineRun.name)"
-      workspaces:
-        - name: mustgather
-          workspace: shared-mustgather
+    {{ lookup('template', 'taskdefs/common/must-gather.yml.j2') | indent(4) }}
 
     # Finalize the record in the FVT database
     # -------------------------------------------------------------------------
