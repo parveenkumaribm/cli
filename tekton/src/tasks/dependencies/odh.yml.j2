@@ -2,7 +2,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: odh
+  name: mas-devops-odh
 spec:
   params:
     {{ lookup('template', task_src_dir ~ '/common/cli-params.yml.j2') | indent(4) }}
