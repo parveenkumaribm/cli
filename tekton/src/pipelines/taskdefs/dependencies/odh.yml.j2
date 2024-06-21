@@ -23,7 +23,7 @@
     - name: install_aibroker
       value: $(params.install_aibroker)
   taskRef:
-    name: odh
+    name: mas-devops-odh
     kind: Task
   when:
     - input: "$(params.install_aibroker)"
