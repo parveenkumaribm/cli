@@ -437,6 +437,15 @@ function install_noninteractive() {
         export INSTALL_AIBROKER=true
       ;;
 
+      # Manage Spatial - Maximo Location Services for Esri
+      # This is only applicable 
+      --install-arcgis)
+        if [[ "${MAS_APPWS_COMPONENTS,,}" == *"spatial="* ]]; then
+          export INSTALL_ARCGIS=true
+        fi
+      ;;
+
+
       # Cloud Provider Commands - IBM Cloud
       --ibmcloud-apikey)
         export IBMCLOUD_APIKEY=$1 && shift

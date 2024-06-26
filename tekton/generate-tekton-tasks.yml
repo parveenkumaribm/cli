@@ -25,6 +25,7 @@
         - aibroker
         - odh
         - kmodels
+        - arcgis
         - appconnect
         - cert-manager
         - common-services

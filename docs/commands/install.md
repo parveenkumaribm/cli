@@ -155,6 +155,7 @@ Usage
 -- `--manage-db-indexspace MAS_APP_SETTINGS_INDEXSPACE`                                     Optional. Set the database indexspace name that Manage will use to be installed. Default is `MAXINDEX`.
 -- `--manage-db-schema MAS_APP_SETTINGS_DB2_SCHEMA`                                         Optional. Set the DB2 database schema name that Manage will use to be installed. Default is `maximo`. Note: This is only applicable to the cases where a DB2 instance will be created for Manage via MAS CLI.
 - `--install-aibroker`                                                                      Optional. Enables IBM Maximo AI Broker installation
+- `--install-arcgis`                                                                       Optional. Enables IBM Maximo Location Services for Esri installation. Only applicable if installing Manage with Spatial.
 
 ### Other Commands:
 - `--no-wait-for-pvcs` If you are using using storage classes that utilize 'WaitForFirstConsumer' binding mode use this flag
