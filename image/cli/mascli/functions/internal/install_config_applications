@@ -210,6 +210,10 @@ function install_config_applications() {
     MAS_APP_CHANNEL_VISUALINSPECTION=""
   fi
 
+  if prompt_for_confirm "Install AI Broker?"; then
+    INSTALL_AIBROKER=true
+  fi
+
   manage_validate_internal_registry
 
   if [[ "$MAS_APP_CHANNEL_ASSIST" != '' ]]; then assist_settings; fi
