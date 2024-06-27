@@ -21,11 +21,6 @@
 - name: sls_namespace
   type: string
   default: ""
-- name: sls_license_id
-  type: string
-- name: sls_license_file
-  type: string
-  default: "/workspace/entitlement/entitlement.lic"
 - name: sls_entitlement_file
   type: string
   default: "/workspace/entitlement/entitlement.lic"
@@ -36,9 +31,6 @@
   type: string
   default: ""
 - name: sls_channel
-  type: string
-  default: ""
-- name: sls_icr_cp
   type: string
   default: ""
 - name: sls_icr_cpopen
@@ -255,6 +247,9 @@
 - name: uds_action
   type: string
   default: ""
+- name: dro_namespace
+  type: string
+  default: ""
 - name: mas_segment_key
   type: string
   default: ""
@@ -282,39 +277,16 @@
   description: COS action to be performed (provision or deprovision)
   default: ""
 
-# MAS Integration - Cluster Monitoring - Prometheus
-# -----------------------------------------------------------------------------
-- name: prometheus_retention_period
-  type: string
-  default: ""
-- name: prometheus_storage_class
-  type: string
-  default: ""
-- name: prometheus_storage_size
-  type: string
-  default: ""
-- name: prometheus_alertmgr_storage_class
-  type: string
-  default: ""
-- name: prometheus_alertmgr_storage_size
-  type: string
-  default: ""
-- name: prometheus_userworkload_retention_period
-  type: string
-  default: ""
-- name: prometheus_userworkload_storage_class
-  type: string
-  default: ""
-- name: prometheus_userworkload_storage_size
-  type: string
-  default: ""
-
 # MAS Integration - Cluster Monitoring - Grafana
 # -----------------------------------------------------------------------------
-- name: cluster_monitoring_include_grafana
+- name: grafana_action
+  type: string
+  description: Set to 'none' to skip Grafana installation
+  default: "install"
+- name: grafana_namespace
   type: string
   default: ""
-- name: grafana_namespace
+- name: grafana_v5_namespace
   type: string
   default: ""
 - name: grafana_instance_storage_class
@@ -324,12 +296,6 @@
   type: string
   default: ""
 - name: grafana_major_version
-  type: string
-  default: ""
-
-# MAS Integration - Cluster Monitoring - Open Telemetry
-# -----------------------------------------------------------------------------
-- name: cluster_monitoring_include_opentelemetry
   type: string
   default: ""
 
@@ -505,6 +471,10 @@
   type: string
   description: Defines Manage application list of secondary languages
   default: ""
+- name: mas_app_settings_server_timezone
+  type: string
+  description: Defines Manage server timezone
+  default: ""
 - name: mas_app_settings_persistent_volumes_flag
   type: string
   description: Flag indicating if persistent volumes should be configured by default during Manage Workspace activation. There are two defaulted File Storage Persistent Volumes Claim resources that will be created out of the box for Manage if this flag is set to true.
@@ -588,6 +558,17 @@
 - name: mas_app_settings_default_jms
   type: string
   description: Set true if you want to configure JMS queues. It is false by default.
+  default: "" # default is handled by ansible-devops
+
+# MAS Application Configuration - IBM Maximo Location Services for ESRI
+# -----------------------------------------------------------------------------
+- name: install_arcgis
+  type: string
+  description: Flag to control whether to install IBM Maximo Location Services for ESRI
+  default: ""
+- name: mas_arcgis_channel
+  type: string
+  description: Default channel for IBM Maximo Location Services for ESRI 
   default: "" # default is handled by ansible-devops
 
 # MAS Application Configuration - Health Application

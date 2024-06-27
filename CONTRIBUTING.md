@@ -14,7 +14,7 @@ The tekton defintions can be built locally using `build/bin/build-tekton.sh`:
 
 ```bash
 # Build, and install the MAS Pipeline & Task definitions
-DEV_MODE=true VERSION=7.8.0-pre.fvtsplit build/bin/build-tekton.sh && oc apply -f tekton/target/ibm-mas-tekton-fvt.yaml
+DEV_MODE=true VERSION=9.0.0-pre.majorup build/bin/build-tekton.sh && oc apply -f tekton/target/ibm-mas-tekton-fvt.yaml
 
 # Build, and install the MAS Pipeline & Task definitions 1-by-1
 DEV_MODE=true VERSION=7.8.0-pre.fvtsplit build/bin/build-tekton.sh && tekton/test.sh
@@ -95,7 +95,7 @@ For `major` and `minor` pull requests mainly, make sure you follow the standard 
   - login to your cluster (oc login command)
   - Execute `ansible-playbook generate-tekton-tasks.yml`
   - Execute `ansible-playbook generate-tekton-pipelines.yml`
-  - Execute `./test.sh`  This will try to create or recreate all the tekton resources in the default pipeline, make sure there are no errors. 
+  - Execute `./test.sh`  This will try to create or recreate all the tekton resources in the default pipeline, make sure there are no errors.
 
 
 Here's how you could get started with a new pull request from your branch:
@@ -124,4 +124,4 @@ The MAS Ansible Devops collection contains the ansible roles that are used to au
 When building a MAS CLI pre-release image version, the build system will embed the MAS Ansible Devops `tar.gz` following the rule:
 
 - By default, MAS CLI will build its pre-release image using [the latest MAS Ansible Devops released version](https://github.com/ibm-mas/ansible-devops/releases).
-- **To use a custom MAS Ansible Devops collection within MAS CLI:**  If you are developing a custom MAS Ansible Devops collection and you want to build a MAS CLI image that will make use of this ansible collection, from the `cli` root folder, you can run `make ansible-build` to build and place your MAS Ansible Devops `tar.gz` into [`cli/image/cli/install-ansible`](image/cli/install-ansible/), that's the folder that CLI uses to install the MAS Ansible Devops collection that will be used within the MAS CLI container during the image build process.
+- **To use a custom MAS Ansible Devops collection within MAS CLI:**  If you are developing a custom MAS Ansible Devops collection and you want to build a MAS CLI image that will make use of this ansible collection, from the `cli` root folder, you can run `make ansible-build` to build and place your MAS Ansible Devops `tar.gz` into [`cli/image/cli/install`](image/cli/install/), that's the folder that CLI uses to install the MAS Ansible Devops collection that will be used within the MAS CLI container during the image build process.
