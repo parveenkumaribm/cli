@@ -22,6 +22,23 @@
       value: $(params.mas_aibroker_channel)
     - name: install_aibroker
       value: $(params.install_aibroker)
+    - name: controllerTag
+      value: $(params.controllerTag)
+    - name: storeTag
+      value: $(params.storeTag)
+    - name: watcherTag
+      value: $(params.watcherTag)
+    - name: connectorTag
+      value: $(params.connectorTag)
+    - name: pipelineStepsTag
+      value: $(params.pipelineStepsTag)
+    - name: tenantName
+      value: $(params.tenantName)
+    - name: storage_piplines_bucket
+      value: $(params.storage_piplines_bucket)
+    - name: storage_tenants_bucket
+      value: $(params.storage_tenants_bucket)
+
   taskRef:
     name: mas-devops-kmodels
     kind: Task

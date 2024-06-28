@@ -22,6 +22,31 @@
       value: $(params.mas_aibroker_channel)
     - name: install_aibroker
       value: $(params.install_aibroker)
+    - name: watsonxai_apikey
+      value: $(params.watsonxai_apikey)
+    - name: watsonxai_url
+      value: $(params.watsonxai_url)
+    - name: watsonxai_project_id
+      value: $(params.watsonxai_project_id)
+    - name: watsonx_action
+      value: $(params.watsonx_action)
+    - name: storage_host
+      value: $(params.storage_host)
+    - name: storage_accesskey
+      value: $(params.storage_accesskey)
+    - name: storage_secretkey
+      value: $(params.storage_secretkey)
+    - name: storage_region
+      value: $(params.storage_region)
+    - name: s3_action
+      value: $(params.s3_action)
+    - name: appDomain
+      value: $(params.appDomain)
+    - name: tenantName
+      value: $(params.tenantName)
+    - name: apikey_action
+      value: $(params.apikey_action)
+
   taskRef:
     name: mas-devops-aibroker
     kind: Task
