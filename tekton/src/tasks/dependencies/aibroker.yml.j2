@@ -46,6 +46,54 @@ spec:
       description: Optional MAS custom labels, comma separated list of key=value pairs
       default: ""
 
+    # WatsonX params
+    - name: watsonxai_apikey      
+      type: string
+      description: 
+      default: "This option is mandatory"
+    - name: watsonxai_url
+      type: string
+      description: 
+      default: "This option is mandatory"   
+    - name: watsonxai_project_id
+      type: string
+      description: 
+      default: "This option is mandatory"
+    - name: watsonx_action
+      type: string
+      description: 
+      default: "This option is mandatory"
+
+    # AI Broker storage 
+    - name: storage_host
+      type: string
+      description: 
+      default: "This option is mandatory"
+    - name: storage_accesskey
+      type: string
+      description: 
+      default: "This option is mandatory"
+    - name: storage_secretkey
+      type: string
+      description: 
+      default: "This option is mandatory"
+    - name: s3_action
+      type: string
+      description: 
+      default: "This option is mandatory"
+    - name: apikey_action
+      type: string
+      description: 
+      default: "This option is mandatory"
+    
+    # AI Broker application domain 
+    - name: app_domain
+      type: string
+      description: 
+      default: "This option is mandatory"
+
+
+
   stepTemplate:
     env:
       {{ lookup('template', task_src_dir ~ '/common/cli-env.yml.j2') | indent(6) }}
@@ -71,6 +119,46 @@ spec:
       # Custom Label Support
       - name: CUSTOM_LABELS
         value: $(params.custom_labels)
+      
+      # WatsonX api key
+      - name: watsonxai_apikey
+        value: $(params.watsonxai_apikey)
+
+      # WatsonX url
+      - name: watsonxai_url
+        value: $(params.watsonxai_url)
+      
+      # WatsonX project id
+      - name: watsonxai_project_id
+        value: $(params.watsonxai_project_id)
+      
+      # WatsonX action
+      - name: watsonx_action
+        value: $(params.watsonx_action)
+      
+      # Storage host
+      - name: storage_host
+        value: $(params.storage_host)
+      
+      # Storage access key
+      - name: storage_accesskey
+        value: $(params.storage_accesskey)
+      
+      # Storage secret key 
+      - name: storage_secretkey
+        value: $(params.storage_secretkey)
+      
+      # S3 action
+      - name: s3_action
+        value: $(params.s3_action)
+      
+      # application domain
+      - name: app_domain
+        value: $(params.app_domain)
+      
+      # AI Broker api key action
+      - name: apikey_action
+        value: $(params.apikey_action)
 
   steps:
     - name: aibroker

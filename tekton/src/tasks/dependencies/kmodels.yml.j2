@@ -46,6 +46,36 @@ spec:
       description: Optional MAS custom labels, comma separated list of key=value pairs
       default: ""
 
+    # Kmodels details
+    - name: controllerTag
+      type: string
+      description: Optional Kmodels details
+      default: ""
+    - name: storeTag
+      type: string
+      description: Optional Kmodels details
+      default: ""
+    - name: watcherTag
+      type: string
+      description: Optional Kmodels details
+      default: ""
+    - name: connectorTag
+      type: string
+      description: Optional Kmodels details
+      default: ""
+    - name: pipelineStepsTag
+      type: string
+      description: Optional Kmodels details
+      default: ""
+    - name: storage_piplines_bucket
+      type: string
+      description: This option is mandatory
+      default: ""
+    - name: storage_tenants_bucket
+      type: string
+      description: This option is mandatory
+      default: ""
+
   stepTemplate:
     env:
       {{ lookup('template', task_src_dir ~ '/common/cli-env.yml.j2') | indent(6) }}
@@ -71,6 +101,22 @@ spec:
       # Custom Label Support
       - name: CUSTOM_LABELS
         value: $(params.custom_labels)
+
+      # Kmodels details
+      - name: controllerTag
+        value: $(params.controllerTag)
+      - name: storeTag
+        value: $(params.storeTag)
+      - name: watcherTag
+        value: $(params.watcherTag)
+      - name: connectorTag
+        value: $(params.connectorTag)
+      - name: pipelineStepsTag
+        value: $(params.pipelineStepsTag)
+      - name: storage_piplines_bucket
+        value: $(params.storage_piplines_bucket)
+      - name: storage_tenants_bucket
+        value: $(params.storage_tenants_bucket)
 
   steps:
     - name: kmodels

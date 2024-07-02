@@ -148,6 +148,17 @@ function channel_select_visualinspection() {
   true
 }
 
+function channel_select_aibroker() {
+  case $MAS_CHANNEL in
+    9.0.x)
+      MAS_AIBROKER_CHANNEL=9.0.x
+      ;;
+    *)
+      prompt_for_input 'Custom Subscription Channel' MAS_AIBROKER_CHANNEL
+      ;;
+  esac
+  true
+}
 
 function install_config_applications() {
   echo
@@ -212,6 +223,7 @@ function install_config_applications() {
 
   if prompt_for_confirm "Install AI Broker?"; then
     INSTALL_AIBROKER=true
+    channel_select_aibroker || exit 1
   fi
 
   manage_validate_internal_registry
@@ -224,6 +236,8 @@ function install_config_applications() {
   if [[ "$MAS_APP_CHANNEL_PREDICT" != "" || "$MAS_APP_CHANNEL_ASSIST" != "" ]]; then
     cp4d_channel_selection
   fi
+
+  if [[ "$MAS_AIBROKER_CHANNEL" != '' ]]; then aibroker_settings; fi
 
 }
 
@@ -247,6 +261,27 @@ function assist_settings() {
 }
 
 
+# Aibroker Settings Function
+# -----------------------------------------------------------------------------
+function aibroker_settings() {
+  echo
+  echo_h3 "Configure AI Broker "
+  echo "${TEXT_DIM}Please provide following details for configure AI Broker"
+  reset_colors
+  echo
+  prompt_for_input "AI Broker storage host" STORAGE_HOST
+  prompt_for_input "AI Broker storage region" STORAGE_REGION
+  prompt_for_input "AI Broker storage provider" STORAGE_PROVIDER
+  prompt_for_secret "AI Broker storage API Key" STORAGE_ACCESSKEY 
+  prompt_for_secret "AI Broker storage secret key" STORAGE_SECRETKEY
+  prompt_for_input "AI Broker storage pipeline bucket" STORAGE_PIPELINES_BUCKET
+  prompt_for_input "AI Broker storage tenants" STORAGE_TENANTS_BUCKET
+  prompt_for_input "AI Broker WatsonX url " WATSONXAI_URL
+  prompt_for_input "AI Broker WatsonX project id" WATSONXAI_PROJECT_ID
+  prompt_for_secret "AI Broker WatsonX API key" WATSONXAI_APIKEY  
+  prompt_for_input "AI Broker tenant name" TENANT_NAME
+  prompt_for_input "AI Broker application domain" APP_DOMAIN
+}
 # Manage builds containers at install-time
 # -----------------------------------------------------------------------------
 # We can save customers wasted time by detecting if the image-registry service

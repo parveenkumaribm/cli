@@ -46,6 +46,28 @@ spec:
       description: Optional MAS custom labels, comma separated list of key=value pairs
       default: ""
 
+    # Opendatahub details
+      - name: storage_provider
+
+      - name: storage_accesskey
+
+      - name: storage_secretkey
+
+      - name: storage_host
+
+      - name: storage_port
+
+      - name: storage_ssl
+
+      - name: storage_region
+
+      - name: storage_piplines_bucket
+
+      - name: storage_tenants_bucket
+
+      - name: tenantName
+
+
   stepTemplate:
     env:
       {{ lookup('template', task_src_dir ~ '/common/cli-env.yml.j2') | indent(6) }}
@@ -71,6 +93,28 @@ spec:
       # Custom Label Support
       - name: CUSTOM_LABELS
         value: $(params.custom_labels)
+
+      # Opendatahub details
+      - name: storage_provider
+        value: $(params.storage_provider)
+      - name: storage_accesskey
+        value: $(params.storage_accesskey)
+      - name: storage_secretkey
+        value: $(params.storage_secretkey)
+      - name: storage_host
+        value: $(params.storage_host)
+      - name: storage_port
+        value: $(params.storage_port)
+      - name: storage_ssl
+        value: $(params.storage_ssl)
+      - name: storage_region
+        value: $(params.storage_region)
+      - name: storage_piplines_bucket
+        value: $(params.storage_piplines_bucket)
+      - name: storage_tenants_bucket
+        value: $(params.storage_tenants_bucket)
+      - name: tenantName
+        value: $(params.tenantName)
 
   steps:
     - name: odh
