@@ -3,7 +3,6 @@
     {{ lookup('template', 'taskdefs/common/cli-params.yml.j2') | indent(4) }}
     - name: devops_suite_name
       value: kmodels
-
     - name: mas_instance_id
       value: $(params.mas_instance_id)
     - name: mas_app_id
@@ -32,13 +31,10 @@
       value: $(params.connectorTag)
     - name: pipelineStepsTag
       value: $(params.pipelineStepsTag)
-    - name: tenantName
-      value: $(params.tenantName)
     - name: storage_piplines_bucket
       value: $(params.storage_piplines_bucket)
     - name: storage_tenants_bucket
       value: $(params.storage_tenants_bucket)
-
   taskRef:
     name: mas-devops-kmodels
     kind: Task

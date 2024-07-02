@@ -488,7 +488,7 @@ spec:
       value: '$STORAGE_TENANTS_BUCKET'
     - name: tenant_name
       value: '$TENANT_NAME'
-    - name: app_domain
+    - name: appDomain
       value: '$APP_DOMAIN'
     - name: watsonxai_apikey
       value: '$WATSONXAI_APIKEY'
@@ -496,6 +496,7 @@ spec:
       value: '$WATSONXAI_URL'
     - name: watsonxai_project_id
       value: '$WATSONXAI_PROJECT_ID'
+      
 
     # Monitor Application
     # -------------------------------------------------------------------------
