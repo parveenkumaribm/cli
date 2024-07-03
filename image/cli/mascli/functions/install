@@ -437,51 +437,51 @@ function install_noninteractive() {
         export INSTALL_AIBROKER=true
       ;;
 
-      --storage_accesskey)
+      --storage-accesskey)
         export STORAGE_ACCESSKEY=$1 && shift
       ;;
 
-      --storage_secretkey)
+      --storage-secretkey)
         export STORAGE_SECRETKEY=$1 && shift
       ;;
 
-      --storage_host)
+      --storage-host)
         export STORAGE_HOST=$1 && shift
       ;;
       
-      --storage_region)
+      --storage-region)
         export STORAGE_REGION=$1 && shift
       ;;
 
-      --storage_provider)
+      --storage-provider)
         export STORAGE_PROVIDER=$1 && shift
       ;;
 
-      --storage_piplines_bucket)
+      --storage-piplines_bucket)
         export STORAGE_PIPELINES_BUCKET=$1 && shift
       ;;
 
-      --storage_tenants_bucket)
+      --storage-tenants_bucket)
         export STORAGE_TENANTS_BUCKET=$1 && shift
       ;;
 
-      --watsonxai_apikey)
+      --watsonxai-apikey)
         export WATSONXAI_APIKEY=$1 && shift
       ;;
 
-      --watsonxai_url)
+      --watsonxai-url)
         export WATSONXAI_URL=$1 && shift
       ;;
 
-      --watsonxai_project_id)
+      --watsonxai-project_id)
         export WATSONXAI_PROJECT_ID=$1 && shift
       ;;
 
-      --tenant_name)
+      --tenant-name)
         export TENANT_NAME=$1 && shift
       ;;
 
-      --app_domain)
+      --app-domain)
         export APP_DOMAIN=$1 && shift
       ;;
 

@@ -103,19 +103,9 @@ spec:
         value: $(params.custom_labels)
 
       # Kmodels details
-      - name: controllerTag
-        value: $(params.controllerTag)
-      - name: storeTag
-        value: $(params.storeTag)
-      - name: watcherTag
-        value: $(params.watcherTag)
-      - name: connectorTag
-        value: $(params.connectorTag)
-      - name: pipelineStepsTag
-        value: $(params.pipelineStepsTag)
-      - name: storage_piplines_bucket
+      - name: STORAGE_PIPELINES_BUCKET
         value: $(params.storage_piplines_bucket)
-      - name: storage_tenants_bucket
+      - name: STORAGE_TENANTS_BUCKET
         value: $(params.storage_tenants_bucket)
 
   steps:

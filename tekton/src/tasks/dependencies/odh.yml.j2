@@ -115,25 +115,25 @@ spec:
         value: $(params.custom_labels)
 
       # Opendatahub details
-      - name: storage_provider
+      - name: STORAGE_PROVIDER
         value: $(params.storage_provider)
-      - name: storage_accesskey
+      - name: STORAGE_ACCESSKEY
         value: $(params.storage_accesskey)
-      - name: storage_secretkey
+      - name: STORAGE_SECRETKEY
         value: $(params.storage_secretkey)
-      - name: storage_host
+      - name: STORAGE_HOST
         value: $(params.storage_host)
-      - name: storage_port
+      - name: STORAGE_PORT
         value: $(params.storage_port)
-      - name: storage_ssl
+      - name: STORAGE_SSL
         value: $(params.storage_ssl)
-      - name: storage_region
+      - name: STORAGE_REGION
         value: $(params.storage_region)
-      - name: storage_piplines_bucket
+      - name: STORAGE_PIPELINES_BUCKET
         value: $(params.storage_piplines_bucket)
-      - name: storage_tenants_bucket
+      - name: STORAGE_TENANTS_BUCKET
         value: $(params.storage_tenants_bucket)
-      - name: tenant_name
+      - name: TENANT_NAME
         value: $(params.tenant_name)
 
   steps:
