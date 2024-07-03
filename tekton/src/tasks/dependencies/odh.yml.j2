@@ -47,26 +47,46 @@ spec:
       default: ""
 
     # Opendatahub details
-      - name: storage_provider
-
-      - name: storage_accesskey
-
-      - name: storage_secretkey
-
-      - name: storage_host
-
-      - name: storage_port
-
-      - name: storage_ssl
-
-      - name: storage_region
-
-      - name: storage_piplines_bucket
-
-      - name: storage_tenants_bucket
-
-      - name: tenantName
-
+    - name: storage_provider
+      type: string
+      default: "This option is mandatory"
+      default: ""
+    - name: storage_accesskey
+      type: string
+      default: "This option is mandatory"
+      default: ""
+    - name: storage_secretkey
+      type: string
+      default: "This option is mandatory"
+      default: ""
+    - name: storage_host
+      type: string
+      default: "This option is mandatory"
+      default: ""
+    - name: storage_port
+      type: string
+      default: "This option is mandatory"
+      default: ""
+    - name: storage_ssl
+      type: string
+      default: "This option is mandatory"
+      default: ""
+    - name: storage_region
+      type: string
+      default: "This option is mandatory"
+      default: ""
+    - name: storage_piplines_bucket
+      type: string
+      default: "This option is mandatory"
+      default: ""
+    - name: storage_tenants_bucket
+      type: string
+      default: "This option is mandatory"
+      default: ""
+    - name: tenantName
+      type: string
+      default: "This option is mandatory"
+      default: ""
 
   stepTemplate:
     env:
