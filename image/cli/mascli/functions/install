@@ -437,6 +437,54 @@ function install_noninteractive() {
         export INSTALL_AIBROKER=true
       ;;
 
+      --storage_accesskey)
+        export STORAGE_ACCESSKEY=$1 && shift
+      ;;
+
+      --storage_secretkey)
+        export STORAGE_SECRETKEY=$1 && shift
+      ;;
+
+      --storage_host)
+        export STORAGE_HOST=$1 && shift
+      ;;
+      
+      --storage_region)
+        export STORAGE_REGION=$1 && shift
+      ;;
+
+      --storage_provider)
+        export STORAGE_PROVIDER=$1 && shift
+      ;;
+
+      --storage_piplines_bucket)
+        export STORAGE_PIPELINES_BUCKET=$1 && shift
+      ;;
+
+      --storage_tenants_bucket)
+        export STORAGE_TENANTS_BUCKET=$1 && shift
+      ;;
+
+      --watsonxai_apikey)
+        export WATSONXAI_APIKEY=$1 && shift
+      ;;
+
+      --watsonxai_url)
+        export WATSONXAI_URL=$1 && shift
+      ;;
+
+      --watsonxai_project_id)
+        export WATSONXAI_PROJECT_ID=$1 && shift
+      ;;
+
+      --tenant_name)
+        export TENANT_NAME=$1 && shift
+      ;;
+
+      --app_domain)
+        export APP_DOMAIN=$1 && shift
+      ;;
+
       # Manage Spatial - Maximo Location Services for Esri
       # This is only applicable 
       --install-arcgis)
