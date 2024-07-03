@@ -457,11 +457,11 @@ function install_noninteractive() {
         export STORAGE_PROVIDER=$1 && shift
       ;;
 
-      --storage-piplines_bucket)
+      --storage-piplines-bucket)
         export STORAGE_PIPELINES_BUCKET=$1 && shift
       ;;
 
-      --storage-tenants_bucket)
+      --storage-tenants-bucket)
         export STORAGE_TENANTS_BUCKET=$1 && shift
       ;;
 
@@ -473,7 +473,7 @@ function install_noninteractive() {
         export WATSONXAI_URL=$1 && shift
       ;;
 
-      --watsonxai-project_id)
+      --watsonxai-project-id)
         export WATSONXAI_PROJECT_ID=$1 && shift
       ;;
 
