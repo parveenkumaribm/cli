@@ -212,9 +212,22 @@ function install_pipelinerun_preview() {
     echo_reset_dim " - Storage Class .......... ${COLOR_MAGENTA}${STORAGE_CLASS_RWX:-<default>}"
   fi
 
-  if [[ "${INSTALL_AIBROKER}" != "true" ]]
+  if [[ "${MAS_AIBROKER_CHANNEL}" == '' ]]
   then echo_reset_dim "AI Broker ................. ${COLOR_RED}Skip Installation"
-  else echo_reset_dim "AI Broker ................. ${COLOR_MAGENTA}Yes"
+  else 
+    echo_reset_dim "AI Broker .................... ${COLOR_MAGENTA}Yes"
+    echo_reset_dim "STORAGE_ACCESSKEY ............ ${COLOR_MAGENTA}${STORAGE_ACCESSKEY}"
+    echo_reset_dim "STORAGE_SECRETKEY ............ ${COLOR_MAGENTA}${STORAGE_SECRETKEY}"
+    echo_reset_dim "STORAGE_HOST ................. ${COLOR_MAGENTA}${STORAGE_HOST}"
+    echo_reset_dim "STORAGE_REGION ............... ${COLOR_MAGENTA}${STORAGE_REGION}"
+    echo_reset_dim "STORAGE_PROVIDER ............. ${COLOR_MAGENTA}${STORAGE_PROVIDER}"
+    echo_reset_dim "STORAGE_PIPELINES_BUCKET ..... ${COLOR_MAGENTA}${STORAGE_PIPELINES_BUCKET}"
+    echo_reset_dim "STORAGE_TENANTS_BUCKET........ ${COLOR_MAGENTA}${STORAGE_TENANTS_BUCKET}"
+    echo_reset_dim "WATSONXAI_URL ................ ${COLOR_MAGENTA}${WATSONXAI_APIKEY}"
+    echo_reset_dim "WATSONXAI_PROJECT_ID ......... ${COLOR_MAGENTA}${WATSONXAI_PROJECT_ID}"
+    echo_reset_dim "MAS_AIBROKER_CHANNEL ......... ${COLOR_MAGENTA}${MAS_AIBROKER_CHANNEL}"
+    echo_reset_dim "APP_DOMAIN ................... ${COLOR_MAGENTA}${APP_DOMAIN}"
+    echo_reset_dim "TENANT_NAME .................. ${COLOR_MAGENTA}${TENANT_NAME}"
   fi
 
   reset_colors
