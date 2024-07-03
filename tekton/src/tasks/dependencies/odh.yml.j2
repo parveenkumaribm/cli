@@ -83,7 +83,7 @@ spec:
       type: string
       default: "This option is mandatory"
       default: ""
-    - name: tenantName
+    - name: tenant_name
       type: string
       default: "This option is mandatory"
       default: ""
@@ -133,8 +133,8 @@ spec:
         value: $(params.storage_piplines_bucket)
       - name: storage_tenants_bucket
         value: $(params.storage_tenants_bucket)
-      - name: tenantName
-        value: $(params.tenantName)
+      - name: tenant_name
+        value: $(params.tenant_name)
 
   steps:
     - name: odh

@@ -482,7 +482,7 @@ spec:
       value: '$STORAGE_REGION'
     - name: storage_provider
       value: '$STORAGE_PROVIDER'
-    - name: storage_pipelines_bucket
+    - name: storage_piplines_bucket
       value: '$STORAGE_PIPELINES_BUCKET'
     - name: storage_tenants_bucket
       value: '$STORAGE_TENANTS_BUCKET'
