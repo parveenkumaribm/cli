@@ -467,8 +467,6 @@ spec:
     # -------------------------------------------------------------------------
     - name: mas_aibroker_channel
       value: '$MAS_AIBROKER_CHANNEL'
-    - name: install_aibroker
-      value: '$INSTALL_AIBROKER'
 
     # IBM Maximo AIBROKER dependencies
     # -------------------------------------------------------------------------

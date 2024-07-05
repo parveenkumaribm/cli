@@ -19,8 +19,6 @@
       value: $(params.custom_labels)
     - name: mas_aibroker_channel
       value: $(params.mas_aibroker_channel)
-    - name: install_aibroker
-      value: $(params.install_aibroker)
     - name: storage_provider
       value: $(params.storage_provider)
     - name: storage_accesskey
@@ -46,6 +44,6 @@
     name: mas-devops-odh
     kind: Task
   when:
-    - input: "$(params.install_aibroker)"
+    - input: "$(params.mas_aibroker_channel)"
       operator: notin
       values: [""]

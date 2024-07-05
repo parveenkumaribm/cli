@@ -222,7 +222,6 @@ function install_config_applications() {
   fi
 
   if prompt_for_confirm "Install AI Broker?"; then
-    INSTALL_AIBROKER=true
     channel_select_aibroker || exit 1
   fi
 

@@ -19,8 +19,6 @@
       value: $(params.custom_labels)
     - name: mas_aibroker_channel
       value: $(params.mas_aibroker_channel)
-    - name: install_aibroker
-      value: $(params.install_aibroker)
     - name: controllerTag
       value: $(params.controllerTag)
     - name: storeTag
@@ -39,6 +37,6 @@
     name: mas-devops-kmodels
     kind: Task
   when:
-    - input: "$(params.install_aibroker)"
+    - input: "$(params.mas_aibroker_channel)"
       operator: notin
       values: [""]
