@@ -531,6 +531,32 @@ function install_pipelinerun_preview() {
   [ "$MAS_APP_SETTINGS_DB2_SCHEMA" != "" ] && cmd+=" --manage-db-schema '$MAS_APP_SETTINGS_DB2_SCHEMA'"
   [ "$INSTALL_ARCGIS" == true ] && cmd+=" \\
   --install-arcgis"
+
+  # Aibroker Application - Advanced Configuration (mandatory):
+  [ "$STORAGE_ACCESSKEY" != "" ] && cmd+=" \\
+  --storage-accesskey '$STORAGE_ACCESSKEY'"
+  [ "$STORAGE_SECRETKEY" != "" ] && cmd+=" \\
+  --storage-secretkey '$STORAGE_SECRETKEY'"
+  [ "$STORAGE_HOST" != "" ] && cmd+=" \\
+  --storage-host '$STORAGE_HOST'"
+  [ "$STORAGE_REGION" != "" ] && cmd+=" \\
+  --storage-region '$STORAGE_REGION'"
+  [ "$STORAGE_PROVIDER" != "" ] && cmd+=" \\
+  --storage-provider '$STORAGE_PROVIDER'"
+  [ "$STORAGE_PIPELINES_BUCKET" != "" ] && cmd+=" \\
+  --storage-piplines-bucket '$STORAGE_PIPELINES_BUCKET'"
+  [ "$STORAGE_TENANTS_BUCKET" != "" ] && cmd+=" \\
+  --storage-tenants-bucket '$STORAGE_TENANTS_BUCKET'"
+  [ "$WATSONXAI_APIKEY" != "" ] && cmd+=" \\
+  --watsonxai-apikey '$WATSONXAI_APIKEY'"
+  [ "$WATSONXAI_URL" != "" ] && cmd+=" \\
+  --watsonxai-url '$WATSONXAI_URL'"
+  [ "$WATSONXAI_PROJECT_ID" != "" ] && cmd+=" \\
+  --watsonxai-project-id '$WATSONXAI_PROJECT_ID'"
+  [ "$APP_DOMAIN" != "" ] && cmd+=" \\
+  --app-domain '$APP_DOMAIN'"
+  [ "$TENANT_NAME" != "" ] && cmd+=" \\
+  --tenant-name '$TENANT_NAME'"
   
   reset_colors
   echo
