@@ -34,8 +34,10 @@ ibm_mas_suite:
 
 {% if MAS_MANUAL_CERT_MGMT == 'true' %}
   mas_manual_cert_mgmt: true
+  testmee: "testmee"
 {% else %}
   mas_manual_cert_mgmt: false
+  testme: "testme"
 {% endif %}
 {%- if MAS_ANNOTATIONS is defined and MAS_ANNOTATIONS !='' %}
   mas_annotations:
