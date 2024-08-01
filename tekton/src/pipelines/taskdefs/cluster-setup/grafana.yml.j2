@@ -23,3 +23,7 @@
       value: $(params.storage_class_rwo)
     - name: grafana_instance_storage_size
       value: $(params.grafana_instance_storage_size)
+  when:
+    - input: "$(params.grafana_action)"
+      operator: in
+      values: ["install"]

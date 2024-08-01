@@ -26,3 +26,7 @@
       value: $(params.eck_remote_es_username)
     - name: eck_remote_es_password
       value: $(params.eck_remote_es_password)
+  when:
+    - input: "$(params.eck_action)"
+      operator: in
+      values: ["install"]
