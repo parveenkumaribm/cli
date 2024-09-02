@@ -165,15 +165,19 @@ spec:
       runAfter:
         - pre-install-check
 
+    {{ lookup('template', pipeline_src_dir ~ '/taskdefs/core/suite-config-cos.yml.j2', template_vars={'suffix': 'system'}) | indent(4) }}
+      runAfter:
+        - suite-verify
+        - cos-system
+
     {{ lookup('template', pipeline_src_dir ~ '/taskdefs/dependencies/cos.yml.j2', template_vars={'suffix': 'manage'}) | indent(4) }}
       runAfter:
-        - suite-verify
+        - suite-config-cos-system
 
-    # 4.2 Configure COS in MAS
-    {{ lookup('template', pipeline_src_dir ~ '/taskdefs/core/suite-config-cos.yml.j2') | indent(4) }}
+    {{ lookup('template', pipeline_src_dir ~ '/taskdefs/core/suite-config-cos.yml.j2', template_vars={'suffix': 'manage'}) | indent(4) }}
       runAfter:
         - suite-verify
-        - cos
+        - cos-manage
 
     # 4.3 Nvidia GPU Operator
     {{ lookup('template', pipeline_src_dir ~ '/taskdefs/dependencies/nvidia.yml.j2') | indent(4) }}
@@ -322,7 +326,7 @@ spec:
     # 11.1 Assist Install
     {{ lookup('template', pipeline_src_dir ~ '/taskdefs/apps/assist-app.yml.j2') | indent(4) }}
       runAfter:
-        - suite-config-cos
+        - suite-config-cos-manage
 
     # 11.2 Configure Assist workspace
     {{ lookup('template', pipeline_src_dir ~ '/taskdefs/apps/assist-workspace.yml.j2') | indent(4) }}
