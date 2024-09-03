@@ -326,7 +326,7 @@ spec:
     # 11.1 Assist Install
     {{ lookup('template', pipeline_src_dir ~ '/taskdefs/apps/assist-app.yml.j2') | indent(4) }}
       runAfter:
-        - suite-config-cos-manage
+        - suite-config-cos-system
 
     # 11.2 Configure Assist workspace
     {{ lookup('template', pipeline_src_dir ~ '/taskdefs/apps/assist-workspace.yml.j2') | indent(4) }}
