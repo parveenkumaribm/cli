@@ -47,6 +47,9 @@ spec:
       type: string
       description: Optional boolean variable weather hmac is enabled or not
       default: ""
+    - name: mas_config_scope
+      type: string
+      default: ""
 
 
   stepTemplate:
@@ -78,6 +81,8 @@ spec:
         value: $(params.ibmcloud_resourcegroup)
       - name: USE_HMAC
         value: $(params.use_hmac)
+      - name: MAS_CONFIG_SCOPE
+        value: $(params.mas_config_scope)
   steps:
     - name: cos
       command:
