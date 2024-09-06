@@ -62,7 +62,7 @@ Content Selection (Other Dependencies):
       --mirror-mongo-v6                           Mirror images for MongoDb Community Edition version 6
       --mirror-db2                                Mirror images for IBM Db2
       --mirror-appconnect                         Mirror images for IBM AppConnect
-      --mirror-odf                                Mirror images for ODF
+      --mirror-odf                                Mirror images for Red Hat OpenShift Data Foundation
 
 Content Selection (All images included):
       --mirror-everything                         Mirror all MAS related images (including dependencies)

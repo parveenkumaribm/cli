@@ -87,7 +87,7 @@ Stage 4 - Other Dependencies
 mas mirror-images -m to-filesystem -d $LOCAL_DIR/other \
   -H $REGISTRY_HOST -P $REGISTRY_PORT -u $REGISTRY_USERNAME -p $REGISTRY_PASSWORD \
   -c @@MAS_LATEST_CATALOG@@ -C @@MAS_LATEST_CHANNEL@@ \
-  --mirror-mongo --mirror-tsm --mirror-sls --mirror-cfs --mirror-db2 --mirror-appconnect \
+  --mirror-mongo --mirror-tsm --mirror-sls --mirror-cfs --mirror-db2 --mirror-appconnect --mirror-odf \
   --ibm-entitlement $IBM_ENTITLEMENT_KEY
 ```
 
@@ -95,5 +95,5 @@ mas mirror-images -m to-filesystem -d $LOCAL_DIR/other \
 mas mirror-images -m from-filesystem -d $LOCAL_DIR/other \
   -H $REGISTRY_HOST -P $REGISTRY_PORT -u $REGISTRY_USERNAME -p $REGISTRY_PASSWORD \
   -c @@MAS_LATEST_CATALOG@@ -C @@MAS_LATEST_CHANNEL@@ \
-  --mirror-mongo --mirror-tsm --mirror-sls --mirror-cfs --mirror-db2 --mirror-appconnect
+  --mirror-mongo --mirror-tsm --mirror-sls --mirror-cfs --mirror-db2 --mirror-appconnect --mirror-odf
 ```

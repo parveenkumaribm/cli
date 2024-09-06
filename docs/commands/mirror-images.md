@@ -53,6 +53,7 @@ Usage
 - `--mirror-mongo` Mirror images for MongoDb Community Edition
 - `--mirror-db2` Mirror images for IBM Db2
 - `--mirror-appconnect` Mirror images for IBM AppConnect
+- `--mirror-odf` Mirror images for Redhat OpenShift Data Foundation
 
 ### Content Selection (All images included):
 - `--mirror-everything` Mirror all MAS related images (including dependencies)
@@ -64,7 +65,7 @@ Usage
 
 Storage Requirements
 -------------------------------------------------------------------------------
-As of MAS 8.10 (June 2023) the total capacity requirement to mirror content from the IBM Maximo Operator Catalog is approximately **484G**, the following table can be used to determine the approximate storage requirement for your mirrored content based on what content you need to mirror:
+As of MAS 8.10 (June 2023) the total capacity requirement to mirror content from the IBM Maximo Operator Catalog is approximately **485G**, the following table can be used to determine the approximate storage requirement for your mirrored content based on what content you need to mirror:
 
 | Maximo Application Suite        | Command Flag                | Size    |
 | ------------------------------- | --------------------------- | ------- |
@@ -97,7 +98,8 @@ As of MAS 8.10 (June 2023) the total capacity requirement to mirror content from
 | IBM Cloud Pak Foundation Services | `--mirror-cfs`              | 21G      |
 | IBM AppConnect                    | `--mirror-appconnect`       | 13G      |
 | IBM Db2                           | `--mirror-db2`              | 73G      |
-| **Total**                         |                             | **117G** |
+| Redhat Openshift Data Foundation  | `--mirror-odf`              | 1G       |
+| **Total**                         |                             | **118G** |
 
 !!! note
     The total capacity used on the filesystem in the target mirror registry itself may be lower than this due to the use of shared image layers, particularly across applications in IBM Maximo Application Suite itself.
@@ -123,7 +125,7 @@ docker run -ti --rm --pull always quay.io/ibmmas/cli mas mirror-images \
   -H mirror.mydomain.com -P 5000 -u $MIRROR_USERNAME -p $MIRROR_PASSWORD \
   -c @@MAS_LATEST_CATALOG@@ -C @@MAS_LATEST_CHANNEL@@ \
   --mirror-catalog --mirror-core --mirror-iot --mirror-manage \
-  --mirror-cfs --mirror-uds --mirror-sls --mirror-tsm --mirror-mongo --mirror-db2 \
+  --mirror-cfs --mirror-uds --mirror-sls --mirror-tsm --mirror-mongo --mirror-db2 --mirror-odf \
   --no-confirm
 ```
 
@@ -143,7 +145,7 @@ docker run -ti --rm -v /registry:/mnt/registry quay.io/ibmmas/cli:@@CLI_LATEST_V
   -H mirror.mydomain.com -P 5000 -u $MIRROR_USERNAME -p $MIRROR_PASSWORD \
   -c @@MAS_LATEST_CATALOG@@ -C @@MAS_LATEST_CHANNEL@@ \
   --mirror-catalog --mirror-core --mirror-iot --mirror-manage \
-  --mirror-cfs --mirror-uds --mirror-sls --mirror-tsm --mirror-mongo --mirror-db2 \
+  --mirror-cfs --mirror-uds --mirror-sls --mirror-tsm --mirror-mongo --mirror-db2 --mirror-odf \
   --no-confirm
 ```
 
@@ -172,7 +174,7 @@ docker run -ti --rm -v /registry:/mnt/registry mirror.mydomain.com:5000/ibmmas/c
   -H mirror.mydomain.com -P 5000 -u $MIRROR_USERNAME -p $MIRROR_PASSWORD \
   -c @@MAS_LATEST_CATALOG@@ -C @@MAS_LATEST_CHANNEL@@ \
   --mirror-catalog --mirror-core --mirror-iot --mirror-manage \
-  --mirror-cfs --mirror-uds --mirror-sls --mirror-tsm --mirror-mongo --mirror-db2 \
+  --mirror-cfs --mirror-uds --mirror-sls --mirror-tsm --mirror-mongo --mirror-db2 --mirror-odf \
   --no-confirm
 ```
 
