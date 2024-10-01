@@ -2,7 +2,6 @@ FROM quay.io/ibmmas/cli-base:latest
 ARG VERSION_LABEL
 
 # Auto-expire the image in quay.io after 3 weeks
-LABEL quay.expires-after=3w
 
 # 1. Copy basics
 COPY app-root/src/ /opt/app-root/src/
