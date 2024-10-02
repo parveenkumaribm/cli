@@ -238,7 +238,7 @@ function mustgather() {
     NAMESPACE_LOOKUP=$(oc get namespace ibm-cpd-operators --ignore-not-found)
     if [[ "$NAMESPACE_LOOKUP" != "" ]]; then
       $MG_SCRIPT_DIR/mg-summary-cp4d &> ${OUTPUT_DIR}/cp4d.txt
-      genericMustGather ibm-cpd
+      genericMustGather ibm-cpd cluster
       genericMustGather ibm-cpd-operators
     else
       echo_highlight "Unable to find ibm-cpd-operators namespace"
