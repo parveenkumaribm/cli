@@ -626,6 +626,7 @@ class InstallApp(BaseApp, InstallSettingsMixin, InstallSummarizerMixin, ConfigGe
         self.installInspection = False
         self.installOptimizer = False
         self.deployCP4D = False
+        print("Set deployCP4D false here just to be sure!")
         self.db2SetAffinity = False
         self.db2SetTolerations = False
 
@@ -809,8 +810,10 @@ class InstallApp(BaseApp, InstallSettingsMixin, InstallSummarizerMixin, ConfigGe
                 else:
                     self.setParam("mas_pod_templates_dir", value)
             elif key == "install_cpd":
+
                 if value is not None:
                     self.deployCP4D = True 
+                print(f"install_cpd {self.deployCP4D}")
             elif key == "assist_channel":
                 if value is not None:
                     self.setParam("mas_app_channel_assist", value)
@@ -1064,6 +1067,7 @@ class InstallApp(BaseApp, InstallSettingsMixin, InstallSummarizerMixin, ConfigGe
         self.configICR()
         self.configCertManager()
         self.deployCP4D = False
+        print("Set deployCP4D to false")
 
         # UDS install has not been supported since the January 2024 catalog update
         self.setParam("uds_action", "install-dro")
@@ -1077,6 +1081,7 @@ class InstallApp(BaseApp, InstallSettingsMixin, InstallSummarizerMixin, ConfigGe
         # After we've configured the basic inputs, we can calculate these ones
         self.setIoTStorageClasses()
         if self.deployCP4D:
+            print("deployCP4D is true")
             self.configCP4D()
 
         # The entitlement file for SLS is mounted as a secret in /workspace/entitlement
