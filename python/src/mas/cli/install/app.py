@@ -810,9 +810,9 @@ class InstallApp(BaseApp, InstallSettingsMixin, InstallSummarizerMixin, ConfigGe
                 else:
                     self.setParam("mas_pod_templates_dir", value)
             elif key == "install_cpd":
-
                 if value is not None:
                     self.deployCP4D = True 
+                    self.setParam("cpd_install_all",value)
                 print(f"install_cpd {self.deployCP4D}")
             elif key == "assist_channel":
                 if value is not None:
