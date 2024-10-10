@@ -714,6 +714,7 @@ class InstallApp(BaseApp, InstallSettingsMixin, InstallSummarizerMixin, ConfigGe
             "db2_temp_storage_size",
             # CP4D
             "cpd_product_version",
+            "cpd_install",
             "cpd_install_cognos",
             "cpd_install_openscale",
             "cpd_install_spss",
@@ -807,7 +808,9 @@ class InstallApp(BaseApp, InstallSettingsMixin, InstallSummarizerMixin, ConfigGe
                     self.setParam("mas_pod_templates_dir", path.join(self.templatesDir, "pod-templates", value))
                 else:
                     self.setParam("mas_pod_templates_dir", value)
-
+            elif key == "install_cpd":
+                if value is not None:
+                    self.deployCP4D = True 
             elif key == "assist_channel":
                 if value is not None:
                     self.setParam("mas_app_channel_assist", value)
