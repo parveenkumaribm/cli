@@ -23,7 +23,7 @@ ENV ANSIBLE_COLLECTIONS_PATH=/opt/app-root/lib64/python3.9/site-packages/ansible
 # 5. Set file permissions to be developer (hack) friendly
 COPY install /tmp/install
 RUN umask 0002 && \
-    ls /tmp/install && \
+    ls -l /tmp/install && \
     bash /tmp/install/install-python-packages.sh && \
     bash /tmp/install/install-ansible-collections.sh && \
     bash /tmp/install/permissions-updates.sh && \
